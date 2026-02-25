@@ -1,0 +1,4 @@
+/* NativeWind global CSS — required for v4 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
