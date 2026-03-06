@@ -10,7 +10,7 @@ import { PropertyFilters, ApiResponse, Property, City, User } from "../types";
 // On Android emulator 10.0.2.2 maps to host machine's localhost.
 // In production (EAS build) EXPO_PUBLIC_API_URL is injected via eas.json env.
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "https://akarnow-backend.onrender.com/api";
+  process.env.EXPO_PUBLIC_API_URL || "https://aqarnow-api.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

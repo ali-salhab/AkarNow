@@ -3,7 +3,7 @@
  * Handles app initialization, font loading, and auth routing
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,16 +18,21 @@ I18nManager.forceRTL(true);
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
+const MIN_SPLASH_MS = 1500;
+
 export default function RootLayout() {
   const { initialize, isLoading } = useAuthStore();
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     initialize().finally(() => {
       SplashScreen.hideAsync();
     });
+    return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || !minTimeElapsed) {
     return (
       <>
         <StatusBar style="light" />

@@ -182,14 +182,19 @@ const styles = StyleSheet.create({
     left: -60,
   },
   logoWrap: {
-    width: 140,
-    height: 140,
+    width: 170,
+    height: 170,
+    borderRadius: 42,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1.5,
+    borderColor: "rgba(14,198,227,0.3)",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   logoImage: {
-    width: 140,
-    height: 140,
+    width: 150,
+    height: 150,
   },
   brandName: {
     fontSize: 38,

@@ -29,6 +29,7 @@ const OTP_LENGTH = 6;
 
 const COUNTRY_CODES = [
   { code: "+966", flag: "🇸🇦", name: "السعودية" },
+  { code: "+963", flag: "🇸🇾", name: "سوريا" },
   { code: "+971", flag: "🇦🇪", name: "الإمارات" },
   { code: "+965", flag: "🇰🇼", name: "الكويت" },
   { code: "+974", flag: "🇶🇦", name: "قطر" },
@@ -101,7 +102,11 @@ export default function SignupScreen() {
       Alert.alert("بريد غير صحيح", "يرجى إدخال بريد إلكتروني صحيح");
       return;
     }
-    if (password && password.length < 6) {
+    if (!password) {
+      Alert.alert("بيانات ناقصة", "يرجى إدخال كلمة المرور");
+      return;
+    }
+    if (password.length < 6) {
       Alert.alert(
         "كلمة مرور ضعيفة",
         "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
@@ -121,7 +126,7 @@ export default function SignupScreen() {
         firstName.trim(),
         lastName.trim(),
         email.trim() || undefined,
-        password || undefined,
+        password,
         {
           residenceCity: residenceCity.trim() || undefined,
           hasOffice,
@@ -194,7 +199,7 @@ export default function SignupScreen() {
         otpCode,
         fullName,
         email.trim() || undefined,
-        password || undefined,
+        password,
         {
           residenceCity: residenceCity.trim() || undefined,
           hasOffice,
@@ -405,7 +410,7 @@ export default function SignupScreen() {
 
           {/* Password */}
           <Text style={[styles.label, { marginTop: 16 }]}>
-            كلمة المرور (اختياري)
+            كلمة المرور
           </Text>
           <View style={styles.fieldRow}>
             <Ionicons
