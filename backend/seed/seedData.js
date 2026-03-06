@@ -318,7 +318,6 @@ const seed = async () => {
 
     // Create admin user
     const adminPassword = process.env.ADMIN_PASSWORD || "Admin@AqarNow2025";
-    const hashedPassword = await bcrypt.hash(adminPassword, 12);
     const adminUser = await User.create({
       phone: "+9660000000000",
       name: "AqarNow Admin",
@@ -326,7 +325,7 @@ const seed = async () => {
       role: "admin",
       isVerified: true,
       isActive: true,
-      password: hashedPassword,
+      password: adminPassword,
     });
     console.log(`✅ Admin user created`);
     console.log(`   📧 Email: ${adminUser.email}`);
