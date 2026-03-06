@@ -50,7 +50,7 @@ services:
     autoDeploy: true
     envVars:
       - key: VITE_API_URL
-        value: https://aqarnow-api.onrender.com/api
+        value: https://akarnow-backend.onrender.com/api
     routes:
       - type: rewrite
         source: /*
