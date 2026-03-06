@@ -394,11 +394,9 @@ exports.updatePropertyAdmin = async (req, res) => {
       if (req.body[f] !== undefined) updates[f] = req.body[f];
     });
 
-    // If new images uploaded, replace images array
+    // If new images uploaded, replace images array (Cloudinary — f.path is the CDN URL)
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(
-        (f) => `/uploads/properties/${f.filename}`,
-      );
+      const newImages = req.files.map((f) => f.path);
       updates.images = newImages;
       updates.coverImage = newImages[0];
     }
@@ -545,9 +543,9 @@ exports.deleteCityAdmin = async (req, res) => {
  */
 exports.createPropertyAdmin = async (req, res) => {
   try {
-    // Build images array from uploaded files
+    // Build images array from uploaded files (Cloudinary — f.path is the CDN URL)
     const uploadedImages = req.files
-      ? req.files.map((f) => `/uploads/properties/${f.filename}`)
+      ? req.files.map((f) => f.path)
       : [];
 
     const property = await Property.create({

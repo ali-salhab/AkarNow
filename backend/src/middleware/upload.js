@@ -1,24 +1,25 @@
 /**
- * Multer upload middleware for property images
+ * Multer upload middleware — streams property images directly to Cloudinary.
+ * No files are ever written to local disk.
  */
 
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Ensure uploads/properties directory exists
-const uploadDir = path.join(process.cwd(), "uploads", "properties");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary from env
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "akarnow/properties",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });
 
@@ -34,7 +35,7 @@ const fileFilter = (_req, file, cb) => {
 const uploadPropertyImages = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024, files: 10 }, // 5MB per file, max 10 files
+  limits: { fileSize: 10 * 1024 * 1024, files: 10 }, // 10MB per file, max 10
 }).array("images", 10);
 
-module.exports = { uploadPropertyImages };
+module.exports = { uploadPropertyImages, cloudinary };
