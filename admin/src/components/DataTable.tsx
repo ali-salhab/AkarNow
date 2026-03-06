@@ -12,7 +12,7 @@ interface Props<T> {
   total?: number;
 }
 
-export default function DataTable<T extends Record<string, unknown>>({
+export default function DataTable<T>({
   data,
   columns,
   isLoading,
@@ -70,23 +70,26 @@ export default function DataTable<T extends Record<string, unknown>>({
                 </td>
               </tr>
             ) : (
-              data.map((row, i) => (
-                <tr
-                  key={String(row._id ?? i)}
-                  className="hover:bg-gray-50/60 transition-colors"
-                >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={`px-6 py-4 text-gray-700 ${col.className || ""}`}
-                    >
-                      {col.render
-                        ? col.render(row)
-                        : String(row[col.key] ?? "—")}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              data.map((row, i) => {
+                const rowRecord = row as Record<string, unknown>;
+                return (
+                  <tr
+                    key={String(rowRecord._id ?? i)}
+                    className="hover:bg-gray-50/60 transition-colors"
+                  >
+                    {columns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-6 py-4 text-gray-700 ${col.className || ""}`}
+                      >
+                        {col.render
+                          ? col.render(row)
+                          : String(rowRecord[col.key] ?? "—")}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

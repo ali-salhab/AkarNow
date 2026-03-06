@@ -233,8 +233,8 @@ export default function Cities() {
       </div>
 
       <DataTable
-        data={data as unknown as Record<string, unknown>[]}
-        columns={columns as Column<Record<string, unknown>>[]}
+        data={data}
+        columns={columns}
         isLoading={isLoading}
         emptyMessage="لم يتم العثور على مدن"
       />
