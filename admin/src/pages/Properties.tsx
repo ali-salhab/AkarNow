@@ -76,6 +76,16 @@ const APPROVAL_TABS = [
   { value: "rejected", label: "مرفوضة" },
 ];
 
+// Resolve image path → full URL (handles both absolute URLs and /uploads/… paths)
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string || "")
+  .replace(/\/api\/?$/, "");
+
+function resolveImg(src: string): string {
+  if (!src) return src;
+  if (src.startsWith("http") || src.startsWith("blob:")) return src;
+  return `${API_ORIGIN}${src.startsWith("/") ? "" : "/"}${src}`;
+}
+
 // ── Inline image slider used in the property table rows ──────────────────────
 function ImageSlider({
   images,
@@ -87,9 +97,10 @@ function ImageSlider({
   const all = [
     ...(cover ? [cover] : []),
     ...(images || []).filter((img) => img !== cover),
-  ].filter(Boolean) as string[];
+  ].filter(Boolean).map(resolveImg) as string[];
 
   const [idx, setIdx] = useState(0);
+  const [hovered, setHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   if (all.length === 0)
@@ -124,6 +135,15 @@ function ImageSlider({
     <div
       ref={containerRef}
       className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 group bg-gray-100"
+      style={{
+        transform: hovered ? "scale(2.4)" : "scale(1)",
+        transformOrigin: "top right",
+        zIndex: hovered ? 50 : "auto",
+        transition: "transform 250ms ease, box-shadow 250ms ease",
+        boxShadow: hovered ? "0 8px 30px rgba(0,0,0,0.35)" : "none",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       dir="ltr"
     >
       {/* Sliding strip */}
@@ -150,13 +170,15 @@ function ImageSlider({
         <>
           <button
             onClick={prev}
-            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity"
+            style={{ opacity: hovered ? 1 : 0 }}
           >
             <ChevronLeft size={12} />
           </button>
           <button
             onClick={next}
-            className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity"
+            style={{ opacity: hovered ? 1 : 0 }}
           >
             <ChevronRight size={12} />
           </button>
@@ -1119,11 +1141,7 @@ export default function Properties() {
                   {editingProp.images.map((img, i) => (
                     <img
                       key={i}
-                      src={
-                        img.startsWith("http")
-                          ? img
-                          : `${import.meta.env.VITE_API_URL || ""}/${img}`
-                      }
+                      src={resolveImg(img)}
                       alt=""
                       className="w-20 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                     />
