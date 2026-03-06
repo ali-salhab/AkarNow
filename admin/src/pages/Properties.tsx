@@ -14,7 +14,10 @@ import {
   Pencil,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { Icon } from "leaflet";
 import { propertiesAPI } from "../services/api";
 import DataTable from "../components/DataTable";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -253,6 +256,34 @@ function ImageSlider({
   );
 }
 
+// Fix Leaflet default marker icons
+const leafletIcon = new Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+// Inner component: captures click events on the map
+function LocationEvents({
+  onSelect,
+}: {
+  onSelect: (lat: number, lng: number) => void;
+}) {
+  const cbRef = useRef(onSelect);
+  useEffect(() => {
+    cbRef.current = onSelect;
+  });
+  useMapEvents({
+    click(e) {
+      cbRef.current(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 interface PropertyForm {
   title: string;
   titleAr: string;
@@ -268,6 +299,8 @@ interface PropertyForm {
   district: string;
   address: string;
   contactPhone: string;
+  latitude: string;
+  longitude: string;
 }
 
 const defaultForm: PropertyForm = {
@@ -285,6 +318,8 @@ const defaultForm: PropertyForm = {
   district: "",
   address: "",
   contactPhone: "",
+  latitude: "",
+  longitude: "",
 };
 
 export default function Properties() {
@@ -458,6 +493,14 @@ export default function Properties() {
       fd.set("bathrooms", String(Number(form.bathrooms)));
       // If English title is empty, use Arabic title
       if (!form.title) fd.set("title", form.titleAr || "بدون عنوان");
+      // Append optional location
+      if (form.latitude && form.longitude) {
+        fd.set("latitude", form.latitude);
+        fd.set("longitude", form.longitude);
+      } else {
+        fd.delete("latitude");
+        fd.delete("longitude");
+      }
       // Append image files
       imageFiles.forEach((file) => fd.append("images", file));
 
@@ -1052,6 +1095,76 @@ export default function Properties() {
                 className="input text-sm"
                 placeholder="شارع، حي..."
               />
+            </div>
+            {/* Map Location Picker */}
+            <div className="sm:col-span-2">
+              <div className="flex items-center justify-between mb-1">
+                <label className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                  <MapPin size={12} />
+                  الموقع على الخريطة —{" "}
+                  <span className="text-gray-400">اختياري</span>
+                </label>
+                {form.latitude && form.longitude && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        latitude: "",
+                        longitude: "",
+                      }))
+                    }
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    مسح الموقع
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-400 mb-1.5">
+                انقر على الخريطة لتحديد موقع العقار
+              </p>
+              <div
+                className="rounded-xl overflow-hidden border border-gray-200"
+                style={{ height: 220 }}
+              >
+                <MapContainer
+                  center={[24.7, 46.7]}
+                  zoom={5}
+                  style={{ height: "100%", width: "100%" }}
+                  scrollWheelZoom={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationEvents
+                    onSelect={(lat, lng) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        latitude: lat.toFixed(6),
+                        longitude: lng.toFixed(6),
+                      }))
+                    }
+                  />
+                  {form.latitude && form.longitude && (
+                    <Marker
+                      position={[
+                        Number(form.latitude),
+                        Number(form.longitude),
+                      ]}
+                      icon={leafletIcon}
+                    />
+                  )}
+                </MapContainer>
+              </div>
+              {form.latitude && form.longitude && (
+                <p
+                  className="mt-1 text-xs text-gray-500 font-mono"
+                  dir="ltr"
+                >
+                  {form.latitude}, {form.longitude}
+                </p>
+              )}
             </div>
             {/* Image Upload */}
             <div className="sm:col-span-2">
