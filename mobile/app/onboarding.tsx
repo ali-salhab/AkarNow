@@ -148,7 +148,7 @@ export default function OnboardingScreen() {
           transition={{ type: "timing", duration: 600, delay: 300 }}
           style={styles.title}
         >
-          {item.title}
+          {item.titleAr}
         </MotiText>
 
         <MotiText
@@ -157,7 +157,7 @@ export default function OnboardingScreen() {
           transition={{ type: "timing", duration: 600, delay: 450 }}
           style={styles.subtitle}
         >
-          {item.subtitle}
+          {item.subtitleAr}
         </MotiText>
       </View>
     </View>
@@ -197,7 +197,7 @@ export default function OnboardingScreen() {
         {/* Buttons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity onPress={handleGetStarted} style={styles.skipBtn}>
-            <Text style={styles.skipText}>Skip</Text>
+            <Text style={styles.skipText}>تخطّي</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -212,7 +212,7 @@ export default function OnboardingScreen() {
               style={styles.nextGradient}
             >
               <Text style={styles.nextText}>
-                {currentIndex === slides.length - 1 ? "Get Started" : "Next"}
+                {currentIndex === slides.length - 1 ? "ابدأ الآن" : "التالي"}
               </Text>
               <Ionicons
                 name={

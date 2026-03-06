@@ -35,17 +35,17 @@ interface FilterSheetProps {
 }
 
 const PRICE_RANGES = [
-  { label: "Any", min: undefined, max: undefined },
-  { label: "< 500K", min: undefined, max: 500000 },
-  { label: "500K - 1M", min: 500000, max: 1000000 },
-  { label: "1M - 2M", min: 1000000, max: 2000000 },
-  { label: "2M - 5M", min: 2000000, max: 5000000 },
-  { label: "5M+", min: 5000000, max: undefined },
+  { label: "الكل", min: undefined, max: undefined },
+  { label: "< 500ك", min: undefined, max: 500000 },
+  { label: "500ك - 1م", min: 500000, max: 1000000 },
+  { label: "1م - 2م", min: 1000000, max: 2000000 },
+  { label: "2م - 5م", min: 2000000, max: 5000000 },
+  { label: "5م+", min: 5000000, max: undefined },
 ];
 
 const ROOMS_OPTIONS = [
-  { label: "Any", value: undefined },
-  { label: "Studio", value: 0 },
+  { label: "الكل", value: undefined },
+  { label: "استوديو", value: 0 },
   { label: "1", value: 1 },
   { label: "2", value: 2 },
   { label: "3", value: 3 },
@@ -122,7 +122,7 @@ export default function FilterSheet({
               Reset{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
             </Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Filters</Text>
+          <Text style={styles.headerTitle}>الفلاتر</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <Ionicons name="close" size={22} color={Colors.textPrimary} />
           </TouchableOpacity>
@@ -135,7 +135,7 @@ export default function FilterSheet({
         >
           {/* ─── Listing Type ─────────────────────────────────── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Listing Type</Text>
+            <Text style={styles.sectionTitle}>نوع الإدراج</Text>
             <View style={styles.optionsRow}>
               {LISTING_TYPES.map((type) => (
                 <TouchableOpacity
@@ -170,7 +170,7 @@ export default function FilterSheet({
 
           {/* ─── Property Type ─────────────────────────────────── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Property Type</Text>
+            <Text style={styles.sectionTitle}>نوع العقار</Text>
             <View style={styles.optionsGrid}>
               {PROPERTY_TYPES.map((type) => (
                 <TouchableOpacity
@@ -209,7 +209,7 @@ export default function FilterSheet({
 
           {/* ─── Price Range ───────────────────────────────────── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Price Range (SAR)</Text>
+            <Text style={styles.sectionTitle}>نطاق السعر (ر.س)</Text>
             <View style={styles.optionsRow}>
               {PRICE_RANGES.map((range) => (
                 <TouchableOpacity
@@ -241,7 +241,7 @@ export default function FilterSheet({
 
           {/* ─── Rooms ─────────────────────────────────────────── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Bedrooms</Text>
+            <Text style={styles.sectionTitle}>غرف النوم</Text>
             <View style={styles.optionsRow}>
               {ROOMS_OPTIONS.map((opt) => (
                 <TouchableOpacity
@@ -269,7 +269,7 @@ export default function FilterSheet({
 
           {/* ─── View Type ─────────────────────────────────────── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>View</Text>
+            <Text style={styles.sectionTitle}>الإطلالة</Text>
             <View style={styles.optionsRow}>
               {VIEW_TYPES.map((type) => (
                 <TouchableOpacity
@@ -311,7 +311,7 @@ export default function FilterSheet({
               style={styles.applyGradient}
             >
               <Text style={styles.applyText}>
-                Apply Filters
+                تطبيق الفلاتر
                 {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
               </Text>
               <Ionicons

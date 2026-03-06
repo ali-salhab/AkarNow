@@ -4,6 +4,7 @@
  */
 
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
@@ -104,5 +105,18 @@ userSchema.virtual("favoritesCount", {
 // Index for performance
 userSchema.index({ phone: 1 });
 userSchema.index({ email: 1 });
+
+// Hash password before save
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+// Compare password
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
+  return bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model("User", userSchema);

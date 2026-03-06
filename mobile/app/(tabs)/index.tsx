@@ -88,9 +88,9 @@ export default function HomeScreen() {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.greeting}>
-              Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
+              صباح الخير{user?.name ? `، ${user.name.split(" ")[0]}` : ""} 👋
             </Text>
-            <Text style={styles.headerTitle}>Find Your Perfect Home</Text>
+            <Text style={styles.headerTitle}>ابحث عن منزلك المثالي</Text>
           </View>
           <TouchableOpacity style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={22} color="#fff" />
@@ -105,9 +105,7 @@ export default function HomeScreen() {
           activeOpacity={0.9}
         >
           <Ionicons name="search" size={18} color={Colors.textMuted} />
-          <Text style={styles.searchPlaceholder}>
-            Search properties, cities...
-          </Text>
+          <Text style={styles.searchPlaceholder}>ابحث عن عقارات، مدن...</Text>
           <TouchableOpacity
             style={styles.filterIconBtn}
             onPress={() => setFilterVisible(true)}
@@ -121,9 +119,9 @@ export default function HomeScreen() {
       {featured.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>✨ Featured</Text>
+            <Text style={styles.sectionTitle}>✨ مميزة</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
+              <Text style={styles.seeAll}>عرض الكل</Text>
             </TouchableOpacity>
           </View>
 
@@ -166,7 +164,7 @@ export default function HomeScreen() {
               !activeListingType && styles.pillTextActive,
             ]}
           >
-            All
+            الكل
           </Text>
         </TouchableOpacity>
         {LISTING_TYPES.map((type) => (
@@ -191,9 +189,9 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>All Properties</Text>
+        <Text style={styles.sectionTitle}>جميع العقارات</Text>
         {pagination && (
-          <Text style={styles.count}>{pagination.total} listings</Text>
+          <Text style={styles.count}>{pagination.total} عقار</Text>
         )}
       </View>
     </View>
@@ -223,10 +221,8 @@ export default function HomeScreen() {
           !isLoading ? (
             <View style={styles.empty}>
               <Ionicons name="home-outline" size={60} color={Colors.border} />
-              <Text style={styles.emptyText}>No properties found</Text>
-              <Text style={styles.emptySubtext}>
-                Try adjusting your filters
-              </Text>
+              <Text style={styles.emptyText}>لا توجد عقارات</Text>
+              <Text style={styles.emptySubtext}>جرّب تعديل الفلاتر</Text>
             </View>
           ) : null
         }

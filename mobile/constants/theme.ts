@@ -63,44 +63,49 @@ export const Shadow = {
 };
 
 export const PROPERTY_TYPES = [
-  { key: "apartment", label: "Apartment", labelAr: "شقة", icon: "business" },
-  { key: "villa", label: "Villa", labelAr: "فيلا", icon: "home" },
-  { key: "chalet", label: "Chalet", labelAr: "شاليه", icon: "beach-access" },
-  { key: "studio", label: "Studio", labelAr: "استوديو", icon: "bed" },
-  { key: "office", label: "Office", labelAr: "مكتب", icon: "work" },
-  { key: "land", label: "Land", labelAr: "أرض", icon: "landscape" },
+  { key: "apartment", label: "شقة", labelAr: "شقة", icon: "business" },
+  { key: "villa", label: "فيلا", labelAr: "فيلا", icon: "home" },
+  { key: "chalet", label: "شاليه", labelAr: "شاليه", icon: "beach-access" },
+  { key: "studio", label: "استوديو", labelAr: "استوديو", icon: "bed" },
+  { key: "office", label: "مكتب", labelAr: "مكتب", icon: "work" },
+  { key: "land", label: "أرض", labelAr: "أرض", icon: "landscape" },
 ];
 
 export const LISTING_TYPES = [
-  { key: "rent", label: "For Rent", labelAr: "للإيجار", color: "#0EC6E3" },
-  { key: "sale", label: "For Sale", labelAr: "للبيع", color: "#1A85E6" },
-  { key: "buy", label: "Buy", labelAr: "شراء", color: "#22C55E" },
+  { key: "rent", label: "للإيجار", labelAr: "للإيجار", color: "#0EC6E3" },
+  { key: "sale", label: "للبيع", labelAr: "للبيع", color: "#1A85E6" },
+  { key: "buy", label: "شراء", labelAr: "شراء", color: "#22C55E" },
 ];
 
 export const VIEW_TYPES = [
-  { key: "sea", label: "Sea View", labelAr: "إطلالة بحرية", icon: "🌊" },
-  { key: "garden", label: "Garden View", labelAr: "إطلالة حديقة", icon: "🌿" },
-  { key: "city", label: "City View", labelAr: "إطلالة المدينة", icon: "🏙️" },
-  { key: "pool", label: "Pool View", labelAr: "إطلالة مسبح", icon: "🏊" },
+  { key: "sea", label: "إطلالة بحرية", labelAr: "إطلالة بحرية", icon: "🌊" },
+  { key: "garden", label: "إطلالة حديقة", labelAr: "إطلالة حديقة", icon: "🌿" },
+  {
+    key: "city",
+    label: "إطلالة المدينة",
+    labelAr: "إطلالة المدينة",
+    icon: "🏙️",
+  },
+  { key: "pool", label: "إطلالة مسبح", labelAr: "إطلالة مسبح", icon: "🏊" },
   {
     key: "mountain",
-    label: "Mountain View",
+    label: "إطلالة جبلية",
     labelAr: "إطلالة جبلية",
     icon: "⛰️",
   },
 ];
 
 export const AMENITIES = [
-  { key: "parking", label: "Parking", icon: "car-outline" },
-  { key: "gym", label: "Gym", icon: "barbell-outline" },
-  { key: "pool", label: "Pool", icon: "water-outline" },
-  { key: "security", label: "Security", icon: "shield-checkmark-outline" },
-  { key: "elevator", label: "Elevator", icon: "arrow-up-circle-outline" },
-  { key: "balcony", label: "Balcony", icon: "sunny-outline" },
-  { key: "maid_room", label: "Maid's Room", icon: "person-outline" },
-  { key: "furnished", label: "Furnished", icon: "home-outline" },
-  { key: "central_ac", label: "Central A/C", icon: "snow-outline" },
-  { key: "internet", label: "Internet", icon: "wifi-outline" },
+  { key: "parking", label: "مواقف سيارات", icon: "car-outline" },
+  { key: "gym", label: "صالة رياضية", icon: "barbell-outline" },
+  { key: "pool", label: "مسبح", icon: "water-outline" },
+  { key: "security", label: "أمن وحراسة", icon: "shield-checkmark-outline" },
+  { key: "elevator", label: "مصعد", icon: "arrow-up-circle-outline" },
+  { key: "balcony", label: "شرفة", icon: "sunny-outline" },
+  { key: "maid_room", label: "غرفة خادمة", icon: "person-outline" },
+  { key: "furnished", label: "مفروش", icon: "home-outline" },
+  { key: "central_ac", label: "تكييف مركزي", icon: "snow-outline" },
+  { key: "internet", label: "إنترنت", icon: "wifi-outline" },
 ];
 
 export const CURRENCIES: Record<string, string> = {

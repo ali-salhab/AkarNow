@@ -31,8 +31,8 @@ export default function FavoritesScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Saved Properties</Text>
-        <Text style={styles.subtitle}>{favorites.length} saved</Text>
+        <Text style={styles.title}>العقارات المحفوظة</Text>
+        <Text style={styles.subtitle}>{favorites.length} محفوظ</Text>
       </View>
 
       <FlatList
@@ -66,15 +66,15 @@ export default function FavoritesScreen() {
                   color={Colors.border}
                 />
               </MotiView>
-              <Text style={styles.emptyTitle}>No saved properties yet</Text>
+              <Text style={styles.emptyTitle}>لا توجد عقارات محفوظة بعد</Text>
               <Text style={styles.emptySubtext}>
-                Tap the heart icon on any property to save it here
+                اضغط على أيقونة القلب على أي عقار لحفظه هنا
               </Text>
               <TouchableOpacity
                 style={styles.browseBtn}
                 onPress={() => router.push("/(tabs)")}
               >
-                <Text style={styles.browseBtnText}>Browse Properties</Text>
+                <Text style={styles.browseBtnText}>تصفح العقارات</Text>
               </TouchableOpacity>
             </View>
           ) : null

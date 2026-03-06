@@ -36,9 +36,9 @@ const LISTING_BADGE_COLORS: Record<string, string> = {
 };
 
 const LISTING_BADGE_LABELS: Record<string, string> = {
-  rent: "For Rent",
-  sale: "For Sale",
-  buy: "Buy",
+  rent: "للإيجار",
+  sale: "للبيع",
+  buy: "شراء",
 };
 
 function formatPrice(price: number, currency: string): string {
@@ -105,7 +105,7 @@ const PropertyCard = memo(
           {property.isVerified && (
             <View style={styles.verifiedBadge}>
               <Ionicons name="checkmark-circle" size={14} color="#22C55E" />
-              <Text style={styles.verifiedText}>Verified</Text>
+              <Text style={styles.verifiedText}>موثّق</Text>
             </View>
           )}
 
@@ -136,7 +136,7 @@ const PropertyCard = memo(
             </Text>
             {property.listingType === "rent" && property.rentPeriod && (
               <Text style={styles.pricePeriod}>
-                /{property.rentPeriod === "yearly" ? "yr" : "mo"}
+                /{property.rentPeriod === "yearly" ? "سنة" : "شهر"}
               </Text>
             )}
           </View>
@@ -188,7 +188,7 @@ const PropertyCard = memo(
                 size={14}
                 color={Colors.textSecondary}
               />
-              <Text style={styles.statText}>{property.area} m²</Text>
+              <Text style={styles.statText}>{property.area} م²</Text>
             </View>
             {property.viewType?.length > 0 && (
               <View style={styles.stat}>

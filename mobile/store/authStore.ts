@@ -17,9 +17,24 @@ interface AuthStore {
 
   // Actions
   initialize: () => Promise<void>;
+  login: (phone: string, password?: string) => Promise<{ devCode?: string }>;
+  register: (
+    phone: string,
+    firstName: string,
+    lastName: string,
+    email?: string,
+    password?: string,
+  ) => Promise<{ devCode?: string }>;
   sendOTP: (phone: string) => Promise<{ devCode?: string }>;
-  verifyOTP: (phone: string, code: string, name?: string) => Promise<boolean>;
+  verifyOTP: (
+    phone: string,
+    code: string,
+    name?: string,
+    email?: string,
+    password?: string,
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
+  devLogin: () => Promise<void>;
   updateUser: (data: Partial<User>) => void;
   setOnboarded: () => Promise<void>;
 }
@@ -63,6 +78,34 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   /**
+   * Register new account — sends OTP, returns devCode in dev
+   */
+  register: async (
+    phone: string,
+    firstName: string,
+    lastName: string,
+    email?: string,
+    password?: string,
+  ) => {
+    const response = await authAPI.register(
+      phone,
+      firstName,
+      lastName,
+      email,
+      password,
+    );
+    return { devCode: response.data?.devCode };
+  },
+
+  /**
+   * Login with phone + optional password — sends OTP, returns devCode in dev
+   */
+  login: async (phone: string, password?: string) => {
+    const response = await authAPI.login(phone, password);
+    return { devCode: response.data?.devCode };
+  },
+
+  /**
    * Send OTP – returns devCode in development
    */
   sendOTP: async (phone: string) => {
@@ -73,9 +116,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   /**
    * Verify OTP and persist auth state
    */
-  verifyOTP: async (phone: string, code: string, name?: string) => {
+  verifyOTP: async (
+    phone: string,
+    code: string,
+    name?: string,
+    email?: string,
+    password?: string,
+  ) => {
     try {
-      const response = await authAPI.verifyOTP(phone, code, name);
+      const response = await authAPI.verifyOTP(
+        phone,
+        code,
+        name,
+        email,
+        password,
+      );
       const { token, user } = response.data;
 
       // Persist to SecureStore
@@ -89,6 +144,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     } catch (error) {
       return false;
     }
+  },
+
+  /**
+   * DEV ONLY — bypass backend, inject a mock authenticated user
+   */
+  devLogin: async () => {
+    const mockToken = "dev-mock-token-12345";
+    const mockUser = {
+      _id: "dev-user-001",
+      phone: "+966500000000",
+      name: "مستخدم تجريبي",
+      email: "test@aqarnow.dev",
+      avatar: null,
+      role: "user" as const,
+      isVerified: true,
+      preferredLanguage: "ar" as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await Promise.all([
+      SecureStore.setItemAsync("auth_token", mockToken),
+      SecureStore.setItemAsync("auth_user", JSON.stringify(mockUser)),
+    ]);
+    set({ token: mockToken, user: mockUser, isAuthenticated: true });
   },
 
   /**

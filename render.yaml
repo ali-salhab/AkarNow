@@ -3,19 +3,24 @@ services:
   - type: web
     name: aqarnow-api
     env: node
+    plan: free
+    region: frankfurt
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
+    autoDeploy: true
     envVars:
+      - key: NODE_VERSION
+        value: 18
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: MONGO_URI
-        sync: false          # Set in Render dashboard
+        sync: false           # Set in Render dashboard
       - key: JWT_SECRET
-        generateValue: true  # Render auto-generates a secure random value
+        generateValue: true   # Render auto-generates a secure random value
       - key: JWT_EXPIRES_IN
         value: 30d
       - key: TWILIO_ACCOUNT_SID
@@ -25,23 +30,27 @@ services:
       - key: TWILIO_PHONE_NUMBER
         sync: false
       - key: OTP_BYPASS
-        value: false
+        value: "true"         # Switch to false after Twilio is configured
+      - key: DEV_OTP
+        value: "123456"       # Fixed OTP used when OTP_BYPASS=true
       - key: ADMIN_EMAIL
-        sync: false          # e.g. admin@aqarnow.com
+        sync: false
       - key: ADMIN_PASSWORD
-        sync: false          # Strong password, set in dashboard
+        sync: false
 
   # ─── Admin Dashboard (Static Site) ────────────────────────────────────────
   - type: web
     name: aqarnow-admin
     env: static
+    plan: free
+    region: frankfurt
     rootDir: admin
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    autoDeploy: true
     envVars:
-      # Set this to your deployed backend URL: https://aqarnow-api.onrender.com/api
       - key: VITE_API_URL
-        sync: false
+        value: https://aqarnow-api.onrender.com/api
     routes:
       - type: rewrite
         source: /*

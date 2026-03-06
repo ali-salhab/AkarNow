@@ -25,17 +25,17 @@ const MENU_ITEMS = [
   {
     id: "notifications",
     icon: "notifications-outline",
-    label: "Notifications",
+    label: "الإشعارات",
     badge: 3,
   },
-  { id: "language", icon: "language-outline", label: "Language / اللغة" },
+  { id: "language", icon: "language-outline", label: "اللغة" },
   {
     id: "privacy",
     icon: "shield-checkmark-outline",
-    label: "Privacy & Security",
+    label: "الخصوصية والأمان",
   },
-  { id: "help", icon: "help-circle-outline", label: "Help & Support" },
-  { id: "about", icon: "information-circle-outline", label: "About AqarNow" },
+  { id: "help", icon: "help-circle-outline", label: "المساعدة والدعم" },
+  { id: "about", icon: "information-circle-outline", label: "حول عقارناو" },
 ];
 
 export default function ProfileScreen() {
@@ -44,10 +44,10 @@ export default function ProfileScreen() {
   const { favorites } = useFavoriteStore();
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("تسجيل الخروج", "هل أنت متأكد من تسجيل الخروج؟", [
+      { text: "إلغاء", style: "cancel" },
       {
-        text: "Logout",
+        text: "تسجيل الخروج",
         style: "destructive",
         onPress: async () => {
           await logout();
@@ -91,24 +91,24 @@ export default function ProfileScreen() {
           </View>
         </MotiView>
 
-        <Text style={styles.userName}>{user?.name || "AqarNow User"}</Text>
+        <Text style={styles.userName}>{user?.name || "مستخدم عقارناو"}</Text>
         <Text style={styles.userPhone}>{user?.phone}</Text>
 
         {/* Stats */}
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <Text style={styles.statNum}>{favorites.length}</Text>
-            <Text style={styles.statLabel}>Saved</Text>
+            <Text style={styles.statLabel}>محفوظ</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={styles.statNum}>0</Text>
-            <Text style={styles.statLabel}>Inquiries</Text>
+            <Text style={styles.statLabel}>استفسارات</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={styles.statNum}>0</Text>
-            <Text style={styles.statLabel}>Visits</Text>
+            <Text style={styles.statLabel}>زيارات</Text>
           </View>
         </View>
       </LinearGradient>
@@ -116,7 +116,7 @@ export default function ProfileScreen() {
       {/* Edit Profile Button */}
       <TouchableOpacity style={styles.editBtn} activeOpacity={0.8}>
         <Ionicons name="create-outline" size={18} color={Colors.primary} />
-        <Text style={styles.editBtnText}>Edit Profile</Text>
+        <Text style={styles.editBtnText}>تعديل الملف الشخصي</Text>
       </TouchableOpacity>
 
       {/* Menu Items */}
@@ -161,10 +161,10 @@ export default function ProfileScreen() {
         activeOpacity={0.8}
       >
         <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={styles.logoutText}>تسجيل الخروج</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>AqarNow v1.0.0 · Built with ❤️</Text>
+      <Text style={styles.version}>عقارناو v1.0.0 · بُني بـ ❤️</Text>
     </ScrollView>
   );
 }

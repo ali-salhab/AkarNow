@@ -100,12 +100,12 @@ export default function PropertyDetailsScreen() {
     return (
       <View style={styles.errorContainer}>
         <Ionicons name="home-outline" size={60} color={Colors.border} />
-        <Text style={styles.errorText}>Property not found</Text>
+        <Text style={styles.errorText}>لم يتم العثور على العقار</Text>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtnFull}
         >
-          <Text style={styles.backBtnText}>Go Back</Text>
+          <Text style={styles.backBtnText}>رجوع</Text>
         </TouchableOpacity>
       </View>
     );
@@ -120,7 +120,7 @@ export default function PropertyDetailsScreen() {
     const phone = property?.contactWhatsApp || property?.contactPhone;
     if (phone) {
       const msg = encodeURIComponent(
-        `Hi, I'm interested in your property: ${property?.title}`,
+        `مرحبا، أنا مهتم بعقارك: ${property?.title}`,
       );
       Linking.openURL(
         `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${msg}`,
@@ -136,7 +136,7 @@ export default function PropertyDetailsScreen() {
 
   const handleShare = async () => {
     await Share.share({
-      message: `Check out this property on AqarNow: ${property?.title} - ${formatPrice(property?.price || 0, property?.currency || "SAR")}`,
+      message: `اكتشف هذا العقار على عقارناو: ${property?.title} - ${formatPrice(property?.price || 0, property?.currency || "SAR")}`,
     });
   };
 
@@ -268,7 +268,7 @@ export default function PropertyDetailsScreen() {
             </Text>
             {property?.listingType === "rent" && (
               <Text style={styles.priceSubtext}>
-                /{property.rentPeriod === "yearly" ? "year" : "month"}
+                /{property.rentPeriod === "yearly" ? "سنة" : "شهر"}
               </Text>
             )}
           </View>
@@ -290,10 +290,10 @@ export default function PropertyDetailsScreen() {
                 >
                   <Text style={styles.badgeText}>
                     {property?.listingType === "rent"
-                      ? "For Rent"
+                      ? "للإيجار"
                       : property?.listingType === "sale"
-                        ? "For Sale"
-                        : "Buy"}
+                        ? "للبيع"
+                        : "شراء"}
                   </Text>
                 </View>
                 {property?.isVerified && (
@@ -303,7 +303,7 @@ export default function PropertyDetailsScreen() {
                       size={14}
                       color={Colors.success}
                     />
-                    <Text style={styles.verifiedText}>Verified</Text>
+                    <Text style={styles.verifiedText}>موثّق</Text>
                   </View>
                 )}
               </View>
@@ -331,23 +331,23 @@ export default function PropertyDetailsScreen() {
             {[
               {
                 icon: "resize-outline",
-                label: `${property?.area || 0} m²`,
-                title: "Area",
+                label: `${property?.area || 0} م²`,
+                title: "المساحة",
               },
               {
                 icon: "bed-outline",
                 label: property?.rooms || 0,
-                title: "Beds",
+                title: "غرف النوم",
               },
               {
                 icon: "water-outline",
                 label: property?.bathrooms || 0,
-                title: "Baths",
+                title: "دورات المياه",
               },
               {
                 icon: "layers-outline",
                 label: property?.floorNumber || 1,
-                title: "Floor",
+                title: "الطابق",
               },
             ].map((stat) => (
               <View key={stat.title} style={styles.statItem}>
@@ -366,14 +366,14 @@ export default function PropertyDetailsScreen() {
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>الوصف</Text>
             <Text style={styles.description}>{property?.description}</Text>
           </View>
 
           {/* View Types */}
           {property?.viewType && property.viewType.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Views</Text>
+              <Text style={styles.sectionTitle}>الإطلالات</Text>
               <View style={styles.tagsRow}>
                 {property.viewType.map((view) => (
                   <View key={view} style={styles.tag}>
@@ -392,7 +392,7 @@ export default function PropertyDetailsScreen() {
           {/* Amenities */}
           {property?.amenities && property.amenities.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Amenities & Features</Text>
+              <Text style={styles.sectionTitle}>المرافق والميزات</Text>
               <View style={styles.amenitiesGrid}>
                 {property.amenities.map((amenity) => {
                   const info = AMENITIES.find((a) => a.key === amenity);
@@ -427,7 +427,7 @@ export default function PropertyDetailsScreen() {
                 <Text style={styles.agentName}>
                   {property?.agentName || "Agent"}
                 </Text>
-                <Text style={styles.agentRole}>Real Estate Agent</Text>
+                <Text style={styles.agentRole}>وكيل عقاري</Text>
               </View>
               <TouchableOpacity
                 style={styles.agentCallBtn}
@@ -448,7 +448,7 @@ export default function PropertyDetailsScreen() {
           activeOpacity={0.85}
         >
           <Ionicons name="call" size={18} color={Colors.primary} />
-          <Text style={styles.callBtnText}>Call</Text>
+          <Text style={styles.callBtnText}>اتصال</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -463,7 +463,7 @@ export default function PropertyDetailsScreen() {
           >
             <Ionicons name="logo-whatsapp" size={18} color="#fff" />
           </MotiView>
-          <Text style={styles.whatsappBtnText}>WhatsApp</Text>
+          <Text style={styles.whatsappBtnText}>واتسآب</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -478,7 +478,7 @@ export default function PropertyDetailsScreen() {
             style={styles.bookGradient}
           >
             <Ionicons name="calendar-outline" size={18} color="#fff" />
-            <Text style={styles.bookBtnText}>Book Visit</Text>
+            <Text style={styles.bookBtnText}>حجز زيارة</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

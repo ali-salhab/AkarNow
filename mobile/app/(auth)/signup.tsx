@@ -1,6 +1,6 @@
 /**
- * Login Screen
- * Phone + Password login with inline OTP verification modal
+ * Signup Screen
+ * Phone + details registration with inline OTP verification modal
  */
 
 import React, { useState, useRef, useEffect } from "react";
@@ -15,7 +15,6 @@ import {
   ScrollView,
   Alert,
   Modal,
-  Dimensions,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,7 +24,6 @@ import { useAuthStore } from "../../store/authStore";
 import { Colors } from "../../constants/Colors";
 import { Shadow, Spacing, Radius } from "../../constants/theme";
 
-const { width } = Dimensions.get("window");
 const OTP_LENGTH = 6;
 
 const COUNTRY_CODES = [
@@ -38,10 +36,13 @@ const COUNTRY_CODES = [
   { code: "+20", flag: "🇪🇬", name: "مصر" },
 ];
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   // ─── Form State ────────────────────────────────────────────────────────────
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -55,47 +56,64 @@ export default function LoginScreen() {
   const [resendTimer, setResendTimer] = useState(60);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const { login, verifyOTP, sendOTP, devLogin } = useAuthStore();
+  const { register, verifyOTP, sendOTP } = useAuthStore();
 
   // ─── Resend countdown ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!otpModalVisible || resendTimer <= 0) return;
-    const timer = setInterval(() => setResendTimer((t) => t - 1), 1000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setResendTimer((s) => s - 1), 1000);
+    return () => clearInterval(t);
   }, [otpModalVisible, resendTimer]);
 
   // ─── Auto-fill dev code ────────────────────────────────────────────────────
   useEffect(() => {
-    if (devCode && devCode.length === OTP_LENGTH) {
-      setOtp(devCode.split(""));
-    }
+    if (devCode && devCode.length === OTP_LENGTH) setOtp(devCode.split(""));
   }, [devCode]);
 
-  // ─── Focus first OTP box when modal opens ─────────────────────────────────
+  // ─── Focus first box ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (otpModalVisible) {
-      setTimeout(() => inputRefs.current[0]?.focus(), 350);
-    }
+    if (otpModalVisible) setTimeout(() => inputRefs.current[0]?.focus(), 350);
   }, [otpModalVisible]);
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
-  const handleLogin = async () => {
+  const handleRegister = async () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      Alert.alert("بيانات ناقصة", "يرجى إدخال الاسم الأول والأخير");
+      return;
+    }
     if (phone.length < 7) {
       Alert.alert("رقم غير صحيح", "يرجى إدخال رقم هاتف صحيح");
+      return;
+    }
+    if (email && !/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert("بريد غير صحيح", "يرجى إدخال بريد إلكتروني صحيح");
+      return;
+    }
+    if (password && password.length < 6) {
+      Alert.alert(
+        "كلمة مرور ضعيفة",
+        "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+      );
       return;
     }
 
     setIsLoading(true);
     try {
       const fullPhone = `${selectedCountry.code}${phone}`;
-      const result = await login(fullPhone, password || undefined);
+      const result = await register(
+        fullPhone,
+        firstName.trim(),
+        lastName.trim(),
+        email.trim() || undefined,
+        password || undefined,
+      );
 
       setDevCode(result.devCode);
       setOtp(new Array(OTP_LENGTH).fill(""));
       setResendTimer(60);
       setOtpModalVisible(true);
     } catch (error: any) {
-      Alert.alert("خطأ", error?.response?.data?.message || "فشل تسجيل الدخول");
+      Alert.alert("خطأ", error?.response?.data?.message || "فشل إنشاء الحساب");
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +161,14 @@ export default function LoginScreen() {
     setIsVerifying(true);
     try {
       const fullPhone = `${selectedCountry.code}${phone}`;
-      const success = await verifyOTP(fullPhone, otpCode);
+      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+      const success = await verifyOTP(
+        fullPhone,
+        otpCode,
+        fullName,
+        email.trim() || undefined,
+        password || undefined,
+      );
       if (success) {
         setOtpModalVisible(false);
         router.replace("/(tabs)");
@@ -193,6 +218,11 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Back button ───────────────────────────────────────────── */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={22} color="rgba(255,255,255,0.8)" />
+        </TouchableOpacity>
+
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <MotiView
           from={{ scale: 0.8, opacity: 0 }}
@@ -201,13 +231,12 @@ export default function LoginScreen() {
           style={styles.logoContainer}
         >
           <View style={styles.logoBox}>
-            <Ionicons name="home" size={42} color="#fff" />
+            <Ionicons name="home" size={36} color="#fff" />
           </View>
           <Text style={styles.brandName}>
             <Text style={styles.brandAqar}>Aqar</Text>
             <Text style={styles.brandNow}>Now</Text>
           </Text>
-          <Text style={styles.brandTagline}>بوابتك لعقارات الفاخرة</Text>
         </MotiView>
 
         {/* ── Card ──────────────────────────────────────────────────── */}
@@ -217,13 +246,34 @@ export default function LoginScreen() {
           transition={{ type: "timing", duration: 500, delay: 200 }}
           style={styles.card}
         >
-          <Text style={styles.cardTitle}>تسجيل الدخول 👋</Text>
-          <Text style={styles.cardSubtitle}>أدخل بياناتك للمتابعة</Text>
+          <Text style={styles.cardTitle}>إنشاء حساب ✨</Text>
+          <Text style={styles.cardSubtitle}>
+            أدخل بياناتك لإنشاء حسابك الجديد
+          </Text>
 
-          {/* Phone Label */}
-          <Text style={styles.label}>رقم الهاتف</Text>
+          {/* First + Last name row */}
+          <Text style={styles.label}>الاسم الكامل</Text>
+          <View style={styles.nameRow}>
+            <TextInput
+              style={[styles.nameInput, { marginLeft: 8 }]}
+              placeholder="الاسم الأول"
+              placeholderTextColor={Colors.textMuted}
+              value={firstName}
+              onChangeText={setFirstName}
+              returnKeyType="next"
+            />
+            <TextInput
+              style={styles.nameInput}
+              placeholder="الاسم الأخير"
+              placeholderTextColor={Colors.textMuted}
+              value={lastName}
+              onChangeText={setLastName}
+              returnKeyType="next"
+            />
+          </View>
 
-          {/* Phone Row */}
+          {/* Phone */}
+          <Text style={[styles.label, { marginTop: 16 }]}>رقم الهاتف</Text>
           <View style={styles.phoneRow}>
             <TouchableOpacity
               style={styles.countryBtn}
@@ -238,7 +288,6 @@ export default function LoginScreen() {
                 color={Colors.textSecondary}
               />
             </TouchableOpacity>
-
             <TextInput
               style={styles.phoneInput}
               placeholder="5X XXX XXXX"
@@ -251,7 +300,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Country Picker Dropdown */}
+          {/* Country dropdown */}
           {showCountryPicker && (
             <MotiView
               from={{ opacity: 0, translateY: -8 }}
@@ -279,22 +328,49 @@ export default function LoginScreen() {
             </MotiView>
           )}
 
-          {/* Password Label */}
+          {/* Email */}
+          <Text style={[styles.label, { marginTop: 16 }]}>
+            البريد الإلكتروني (اختياري)
+          </Text>
+          <View style={styles.fieldRow}>
+            <Ionicons
+              name="mail-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.fieldIcon}
+            />
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="example@email.com"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              returnKeyType="next"
+            />
+          </View>
+
+          {/* Password */}
           <Text style={[styles.label, { marginTop: 16 }]}>
             كلمة المرور (اختياري)
           </Text>
-
-          {/* Password Input */}
-          <View style={styles.passwordRow}>
+          <View style={styles.fieldRow}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.fieldIcon}
+            />
             <TextInput
-              style={styles.passwordInput}
+              style={[styles.fieldInput, { letterSpacing: password ? 2 : 0 }]}
               placeholder="••••••••"
               placeholderTextColor={Colors.textMuted}
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
               returnKeyType="done"
-              onSubmitEditing={handleLogin}
+              onSubmitEditing={handleRegister}
             />
             <TouchableOpacity
               style={styles.eyeBtn}
@@ -308,10 +384,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Login Button */}
+          {/* Register Button */}
           <TouchableOpacity
-            style={styles.loginBtn}
-            onPress={handleLogin}
+            style={styles.submitBtn}
+            onPress={handleRegister}
             activeOpacity={0.85}
             disabled={isLoading}
           >
@@ -319,13 +395,13 @@ export default function LoginScreen() {
               colors={["#1A85E6", "#0EC6E3"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.loginGradient}
+              style={styles.submitGradient}
             >
               {isLoading ? (
-                <Text style={styles.loginText}>جاري الإرسال...</Text>
+                <Text style={styles.submitText}>جاري الإرسال...</Text>
               ) : (
                 <>
-                  <Text style={styles.loginText}>تسجيل الدخول</Text>
+                  <Text style={styles.submitText}>إنشاء الحساب</Text>
                   <Ionicons
                     name="arrow-forward"
                     size={18}
@@ -337,32 +413,15 @@ export default function LoginScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          <Text style={styles.disclaimer}>
-            بالمتابعة، أنت توافق على{" "}
-            <Text style={styles.link}>شروط الخدمة</Text> و{" "}
-            <Text style={styles.link}>سياسة الخصوصية</Text>
-          </Text>
-
-          {/* Link to signup */}
+          {/* Link to login */}
           <TouchableOpacity
-            style={styles.signupLink}
-            onPress={() => router.push("/(auth)/signup")}
+            style={styles.loginLink}
+            onPress={() => router.replace("/(auth)/login")}
           >
-            <Text style={styles.signupLinkText}>
-              ليس لديك حساب؟{" "}
-              <Text style={styles.signupLinkBold}>إنشاء حساب جديد</Text>
+            <Text style={styles.loginLinkText}>
+              لديك حساب بالفعل؟{" "}
+              <Text style={styles.loginLinkBold}>تسجيل الدخول</Text>
             </Text>
-          </TouchableOpacity>
-
-          {/* DEV MODE BYPASS */}
-          <TouchableOpacity
-            style={styles.devBypassBtn}
-            onPress={async () => {
-              await devLogin();
-              router.replace("/(tabs)");
-            }}
-          >
-            <Text style={styles.devBypassText}>🛠 دخول تجريبي بدون سيرفر</Text>
           </TouchableOpacity>
         </MotiView>
       </ScrollView>
@@ -383,7 +442,6 @@ export default function LoginScreen() {
           />
           <View style={styles.modalBlob} />
 
-          {/* Close */}
           <TouchableOpacity
             style={styles.modalCloseBtn}
             onPress={() => setOtpModalVisible(false)}
@@ -392,7 +450,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <View style={styles.modalContent}>
-            {/* Icon */}
             <MotiView
               from={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -407,13 +464,13 @@ export default function LoginScreen() {
               </LinearGradient>
             </MotiView>
 
-            <Text style={styles.modalTitle}>رمز التحقق</Text>
+            <Text style={styles.modalTitle}>تحقق من هاتفك</Text>
             <Text style={styles.modalSubtitle}>
               {`أرسلنا رمزًا مكوّنًا من ٦ أرقام إلى\n`}
               <Text style={styles.modalPhone}>{maskedPhone}</Text>
             </Text>
 
-            {/* ── Dev Code Banner ──────────────────────────────────── */}
+            {/* Dev Code Banner */}
             {devCode ? (
               <MotiView
                 from={{ opacity: 0, scale: 0.9 }}
@@ -430,7 +487,7 @@ export default function LoginScreen() {
               </MotiView>
             ) : null}
 
-            {/* ── OTP Inputs ───────────────────────────────────────── */}
+            {/* OTP Inputs */}
             <View style={styles.otpRow}>
               {otp.map((digit, idx) => (
                 <TextInput
@@ -450,7 +507,7 @@ export default function LoginScreen() {
               ))}
             </View>
 
-            {/* ── Verify Button ────────────────────────────────────── */}
+            {/* Verify Button */}
             <TouchableOpacity
               style={[styles.verifyBtn, isVerifying && { opacity: 0.7 }]}
               onPress={() => handleVerify()}
@@ -466,7 +523,7 @@ export default function LoginScreen() {
                 style={styles.verifyGradient}
               >
                 <Text style={styles.verifyText}>
-                  {isVerifying ? "جاري التحقق..." : "تحقّق"}
+                  {isVerifying ? "جاري التحقق..." : "تحقّق وإنشاء الحساب"}
                 </Text>
                 {!isVerifying && (
                   <Ionicons
@@ -479,7 +536,7 @@ export default function LoginScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* ── Resend ───────────────────────────────────────────── */}
+            {/* Resend */}
             <TouchableOpacity
               onPress={handleResend}
               style={styles.resendBtn}
@@ -507,9 +564,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    justifyContent: "center",
     padding: Spacing.base,
-    paddingTop: 80,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   blob1: {
@@ -530,24 +586,32 @@ const styles = StyleSheet.create({
     bottom: 100,
     left: -60,
   },
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
   // ── Logo ──────────────────────────────────────────────────────────────────
-  logoContainer: { alignItems: "center", marginBottom: 40 },
+  logoContainer: { alignItems: "center", marginBottom: 28 },
   logoBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.3)",
     ...Shadow.md,
   },
-  brandName: { fontSize: 32, fontWeight: "800", letterSpacing: -0.5 },
+  brandName: { fontSize: 26, fontWeight: "800", letterSpacing: -0.5 },
   brandAqar: { color: "rgba(255,255,255,0.85)" },
   brandNow: { color: "#0EC6E3" },
-  brandTagline: { color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 4 },
   // ── Card ──────────────────────────────────────────────────────────────────
   card: {
     backgroundColor: "#fff",
@@ -556,22 +620,36 @@ const styles = StyleSheet.create({
     ...Shadow.lg,
   },
   cardTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "800",
     color: Colors.textPrimary,
     marginBottom: 6,
   },
   cardSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
-    marginBottom: 24,
-    lineHeight: 20,
+    marginBottom: 22,
+    lineHeight: 19,
   },
   label: {
     fontSize: 13,
     fontWeight: "600",
     color: Colors.textSecondary,
     marginBottom: 8,
+  },
+  // ── Name row ──────────────────────────────────────────────────────────────
+  nameRow: { flexDirection: "row" },
+  nameInput: {
+    flex: 1,
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.textPrimary,
   },
   // ── Phone ─────────────────────────────────────────────────────────────────
   phoneRow: {
@@ -587,20 +665,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRightWidth: 1.5,
     borderRightColor: Colors.border,
     gap: 4,
   },
   flag: { fontSize: 20 },
-  countryCode: { fontSize: 15, fontWeight: "600", color: Colors.textPrimary },
+  countryCode: { fontSize: 14, fontWeight: "600", color: Colors.textPrimary },
   phoneInput: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "600",
     color: Colors.textPrimary,
     paddingHorizontal: 14,
-    paddingVertical: 16,
+    paddingVertical: 14,
     letterSpacing: 1,
   },
   dropdown: {
@@ -633,8 +711,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: "600",
   },
-  // ── Password ──────────────────────────────────────────────────────────────
-  passwordRow: {
+  // ── Generic field ─────────────────────────────────────────────────────────
+  fieldRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surfaceAlt,
@@ -643,51 +721,33 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingHorizontal: 14,
   },
-  passwordInput: {
+  fieldIcon: { marginRight: 8 },
+  fieldInput: {
     flex: 1,
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "500",
     color: Colors.textPrimary,
-    paddingVertical: 16,
-    letterSpacing: 2,
+    paddingVertical: 14,
   },
   eyeBtn: { padding: 4 },
-  // ── Login Button ──────────────────────────────────────────────────────────
-  loginBtn: {
+  // ── Submit button ─────────────────────────────────────────────────────────
+  submitBtn: {
     borderRadius: 16,
     overflow: "hidden",
     marginTop: 24,
     ...Shadow.md,
   },
-  loginGradient: {
+  submitGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 18,
   },
-  loginText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  disclaimer: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    textAlign: "center",
-    marginTop: 16,
-    lineHeight: 18,
-  },
-  link: { color: Colors.primaryLight, fontWeight: "600" },
-  signupLink: { marginTop: 12, alignItems: "center" },
-  signupLinkText: { fontSize: 13, color: Colors.textMuted },
-  signupLinkBold: { color: Colors.primaryLight, fontWeight: "700" },
-  devBypassBtn: {
-    marginTop: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,193,7,0.13)",
-    borderWidth: 1,
-    borderColor: "rgba(255,193,7,0.35)",
-    alignItems: "center",
-  },
-  devBypassText: { fontSize: 12, color: "#F59E0B", fontWeight: "700" },
+  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  // ── Login link ────────────────────────────────────────────────────────────
+  loginLink: { marginTop: 16, alignItems: "center" },
+  loginLinkText: { fontSize: 13, color: Colors.textMuted },
+  loginLinkBold: { color: Colors.primaryLight, fontWeight: "700" },
   // ── Modal ─────────────────────────────────────────────────────────────────
   modalContainer: { flex: 1 },
   modalBlob: {
@@ -726,7 +786,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
     color: "#fff",
     marginBottom: 10,
@@ -770,12 +830,8 @@ const styles = StyleSheet.create({
     color: "#FFC107",
     letterSpacing: 8,
   },
-  // ── OTP Input ─────────────────────────────────────────────────────────────
-  otpRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 28,
-  },
+  // ── OTP ───────────────────────────────────────────────────────────────────
+  otpRow: { flexDirection: "row", gap: 10, marginBottom: 28 },
   otpBox: {
     width: 46,
     height: 58,
@@ -792,7 +848,7 @@ const styles = StyleSheet.create({
     borderColor: "#0EC6E3",
     backgroundColor: "rgba(14,198,227,0.15)",
   },
-  // ── Verify Button ─────────────────────────────────────────────────────────
+  // ── Verify button ─────────────────────────────────────────────────────────
   verifyBtn: {
     borderRadius: 16,
     overflow: "hidden",

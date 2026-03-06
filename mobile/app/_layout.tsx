@@ -7,9 +7,13 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { I18nManager } from "react-native";
 import { useAuthStore } from "../store/authStore";
+import AppSplash from "../components/AppSplash";
 import "../global.css";
+
+// Force RTL for Arabic
+I18nManager.forceRTL(true);
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
@@ -23,14 +27,20 @@ export default function RootLayout() {
     });
   }, []);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <AppSplash />
+      </>
+    );
+  }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
-        <Stack.Screen name="splash" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
@@ -41,6 +51,6 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-    </GestureHandlerRootView>
+    </>
   );
 }

@@ -3,10 +3,18 @@ const router = express.Router();
 const {
   sendOTPHandler,
   verifyOTPHandler,
+  registerHandler,
+  loginHandler,
   getMe,
   updateProfile,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
+
+// @route  POST /api/auth/register  (new user → sends OTP)
+router.post("/register", registerHandler);
+
+// @route  POST /api/auth/login  (phone + password → sends OTP)
+router.post("/login", loginHandler);
 
 // @route  POST /api/auth/send-otp
 router.post("/send-otp", sendOTPHandler);

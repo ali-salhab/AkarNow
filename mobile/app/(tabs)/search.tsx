@@ -95,14 +95,14 @@ export default function SearchScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Search Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search Properties</Text>
+        <Text style={styles.headerTitle}>ابحث عن عقارات</Text>
 
         <View style={styles.searchRow}>
           <View style={styles.searchBar}>
             <Ionicons name="search" size={18} color={Colors.textMuted} />
             <TextInput
               style={styles.input}
-              placeholder="City, district, property type..."
+              placeholder="مدينة، حي، نوع عقار..."
               placeholderTextColor={Colors.textMuted}
               value={query}
               onChangeText={setQuery}
@@ -154,7 +154,7 @@ export default function SearchScreen() {
               <View style={styles.suggestionText}>
                 <Text style={styles.suggestionLabel}>{suggestion.label}</Text>
                 <Text style={styles.suggestionType}>
-                  {suggestion.type === "city" ? "City" : "Property"}
+                  {suggestion.type === "city" ? "مدينة" : "عقار"}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -184,7 +184,7 @@ export default function SearchScreen() {
           query && !isLoading && pagination ? (
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsText}>
-                {pagination.total} results for "{query}"
+                {pagination.total} نتيجة لـ "{query}"
               </Text>
             </View>
           ) : null
@@ -199,10 +199,8 @@ export default function SearchScreen() {
                     size={56}
                     color={Colors.border}
                   />
-                  <Text style={styles.emptyTitle}>No results found</Text>
-                  <Text style={styles.emptySubtext}>
-                    Try a different search term
-                  </Text>
+                  <Text style={styles.emptyTitle}>لا توجد نتائج</Text>
+                  <Text style={styles.emptySubtext}>جرّب كلمة بحث مختلفة</Text>
                 </>
               ) : (
                 <>
@@ -211,11 +209,9 @@ export default function SearchScreen() {
                     size={56}
                     color={Colors.border}
                   />
-                  <Text style={styles.emptyTitle}>
-                    Find your perfect property
-                  </Text>
+                  <Text style={styles.emptyTitle}>اعثر على عقارك المثالي</Text>
                   <Text style={styles.emptySubtext}>
-                    Search by city, type, or keyword
+                    ابحث بالمدينة أو النوع أو كلمة مفتاحية
                   </Text>
                 </>
               )}

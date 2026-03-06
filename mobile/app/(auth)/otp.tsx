@@ -101,7 +101,7 @@ export default function OTPScreen() {
     const otpCode = code || otp.join("");
 
     if (otpCode.length < OTP_LENGTH) {
-      Alert.alert("Incomplete Code", "Please enter all 6 digits");
+      Alert.alert("الرمز غير مكتمل", "يرجى إدخال الأرقام الستة كاملة");
       return;
     }
 
@@ -112,16 +112,13 @@ export default function OTPScreen() {
       if (success) {
         router.replace("/(tabs)");
       } else {
-        Alert.alert(
-          "Invalid Code",
-          "The verification code you entered is incorrect.",
-        );
+        Alert.alert("رمز غير صحيح", "رمز التحقق الذي أدخلته غير صحيح.");
         // Clear OTP
         setOtp(new Array(OTP_LENGTH).fill(""));
         inputRefs.current[0]?.focus();
       }
     } catch {
-      Alert.alert("Error", "Verification failed. Please try again.");
+      Alert.alert("خطأ", "فشل التحقق. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsLoading(false);
     }
@@ -132,9 +129,9 @@ export default function OTPScreen() {
     setResendTimer(60);
     try {
       await sendOTP(phone);
-      Alert.alert("Sent!", "A new code has been sent to your phone.");
+      Alert.alert("تم الإرسال!", "تم إرسال رمز جديد إلى هاتفك.");
     } catch {
-      Alert.alert("Error", "Failed to resend. Please try again.");
+      Alert.alert("خطأ", "فشل إعادة الإرسال. يرجى المحاولة مرة أخرى.");
     }
   };
 
@@ -180,7 +177,7 @@ export default function OTPScreen() {
           transition={{ type: "timing", duration: 500, delay: 200 }}
           style={styles.title}
         >
-          Verify Your Number
+          تحقّق من رقمك
         </MotiText>
 
         <MotiText
@@ -189,7 +186,7 @@ export default function OTPScreen() {
           transition={{ delay: 300 }}
           style={styles.subtitle}
         >
-          We sent a 6-digit code to{"\n"}
+          {`أرسلنا رمزًا مكوّنًا من ٦ أرقام إلى\n`}
           <Text style={styles.phone}>{maskedPhone}</Text>
         </MotiText>
 
@@ -251,7 +248,7 @@ export default function OTPScreen() {
               style={styles.verifyGradient}
             >
               <Text style={styles.verifyText}>
-                {isLoading ? "Verifying..." : "Verify Code"}
+                {isLoading ? "جاري التحقق..." : "تحقّق من الرمز"}
               </Text>
               {!isLoading && (
                 <Ionicons
@@ -273,8 +270,8 @@ export default function OTPScreen() {
         >
           <Text style={styles.resendText}>
             {resendTimer > 0
-              ? `Resend code in ${resendTimer}s`
-              : "Didn't receive code? Resend"}
+              ? `إعادة الإرسال خلال ${resendTimer}ث`
+              : "لم تستلم الرمز؟ إعادة الإرسال"}
           </Text>
         </TouchableOpacity>
       </View>

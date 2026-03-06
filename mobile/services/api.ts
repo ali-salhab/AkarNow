@@ -4,11 +4,17 @@
  */
 
 import axios from "axios";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { PropertyFilters, ApiResponse, Property, City, User } from "../types";
 
-// Base URL — update for production
-const BASE_URL = process.env.API_URL || "http://localhost:5000/api";
+// On Android emulator 10.0.2.2 maps to host machine's localhost.
+// In production (EAS build) EXPO_PUBLIC_API_URL is injected via eas.json env.
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (Platform.OS === "android"
+    ? "http://10.0.2.2:5000/api"
+    : "http://localhost:5000/api");
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -45,10 +51,27 @@ api.interceptors.response.use(
 
 // ─── Auth API ──────────────────────────────────────────────────────────────────
 export const authAPI = {
+  login: (phone: string, password?: string) =>
+    api.post("/auth/login", { phone, password }),
+
   sendOTP: (phone: string) => api.post("/auth/send-otp", { phone }),
 
-  verifyOTP: (phone: string, code: string, name?: string) =>
-    api.post("/auth/verify-otp", { phone, code, name }),
+  register: (
+    phone: string,
+    firstName: string,
+    lastName: string,
+    email?: string,
+    password?: string,
+  ) =>
+    api.post("/auth/register", { phone, firstName, lastName, email, password }),
+
+  verifyOTP: (
+    phone: string,
+    code: string,
+    name?: string,
+    email?: string,
+    password?: string,
+  ) => api.post("/auth/verify-otp", { phone, code, name, email, password }),
 
   getMe: () => api.get<ApiResponse<User>>("/auth/me"),
 
