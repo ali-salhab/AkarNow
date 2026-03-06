@@ -18,23 +18,30 @@ interface AuthState {
   initializeFromStorage: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  token: null,
+export const useAuthStore = create<AuthState>((set) => {
+  // Initialise synchronously so ProtectedRoute never sees a false null on first render
+  let initialToken: string | null = null;
+  let initialUser: AdminUser | null = null;
+  try {
+    const t = localStorage.getItem("admin_token");
+    const u = localStorage.getItem("admin_user");
+    if (t && u) {
+      initialToken = t;
+      initialUser = JSON.parse(u);
+    }
+  } catch {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+  }
+
+  return {
+    user: initialUser,
+    token: initialToken,
   isLoading: false,
   error: null,
 
   initializeFromStorage: () => {
-    const token = localStorage.getItem("admin_token");
-    const userStr = localStorage.getItem("admin_user");
-    if (token && userStr) {
-      try {
-        set({ token, user: JSON.parse(userStr) });
-      } catch {
-        localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_user");
-      }
-    }
+    // kept for backwards compat but no-op now (init happens at store creation)
   },
 
   login: async (email, password) => {
@@ -59,4 +66,5 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("admin_user");
     set({ user: null, token: null });
   },
-}));
+  };
+});
