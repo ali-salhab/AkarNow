@@ -40,6 +40,8 @@ const COUNTRY_CODES = [
 ];
 
 export default function SignupScreen() {
+  const insets = useSafeAreaInsets();
+
   // ─── Form State ────────────────────────────────────────────────────────────
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -261,14 +263,10 @@ export default function SignupScreen() {
       </TouchableOpacity>
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: insets.top + 70 },
-        ]}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 70 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <MotiView
           from={{ scale: 0.8, opacity: 0 }}
