@@ -65,11 +65,13 @@ export default function LoginScreen() {
     return () => clearInterval(timer);
   }, [otpModalVisible, resendTimer]);
 
-  // ─── Auto-fill dev code ────────────────────────────────────────────────────
+  // ─── Auto-fill dev code & auto-submit ────────────────────────────────────
   useEffect(() => {
     if (devCode && devCode.length === OTP_LENGTH) {
       setOtp(devCode.split(""));
+      setTimeout(() => handleVerify(devCode), 600);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devCode]);
 
   // ─── Focus first OTP box when modal opens ─────────────────────────────────

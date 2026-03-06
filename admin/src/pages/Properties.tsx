@@ -665,6 +665,12 @@ export default function Properties() {
       district: prop.district || "",
       address: prop.address || "",
       contactPhone: prop.contactPhone || "",
+      latitude: String(
+        (prop as unknown as { latitude?: number }).latitude ?? "",
+      ),
+      longitude: String(
+        (prop as unknown as { longitude?: number }).longitude ?? "",
+      ),
     });
   };
 
