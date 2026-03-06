@@ -16,6 +16,7 @@ export default {
     "animate-slideInRight",
     "animate-scaleIn",
     "animate-floatBubble",
+    "animate-slideInLeft",
   ],
   theme: {
     extend: {

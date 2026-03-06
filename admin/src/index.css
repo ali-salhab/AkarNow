@@ -57,10 +57,20 @@
 @keyframes floatBubble {
   0%,
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-16px) scale(1.04);
+    transform: translateY(-16px);
+  }
+}
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 @keyframes shimmer {
@@ -89,6 +99,9 @@
 }
 .animate-floatBubble {
   animation: floatBubble 4s ease-in-out infinite;
+}
+.animate-slideInLeft {
+  animation: slideInLeft 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Staggered delay helpers */

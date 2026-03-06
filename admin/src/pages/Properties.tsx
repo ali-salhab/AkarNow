@@ -639,7 +639,10 @@ export default function Properties() {
               <select
                 value={form.listingType}
                 onChange={(e) =>
-                  setForm({ ...form, listingType: e.target.value as "rent" | "sale" | "buy" })
+                  setForm({
+                    ...form,
+                    listingType: e.target.value as "rent" | "sale" | "buy",
+                  })
                 }
                 className="input text-sm"
               >
