@@ -270,14 +270,21 @@ const loginHandler = async (req, res) => {
 
     await OTP.create({ phone, code });
 
-    if (process.env.OTP_BYPASS !== "true") {
+    const twilioConfigured = !!(
+      process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    );
+    if (process.env.OTP_BYPASS !== "true" && twilioConfigured) {
       await sendOTP(phone, code);
     }
 
     res.status(200).json({
       success: true,
       message: `Verification code sent to ${phone}`,
-      ...(process.env.NODE_ENV === "development" && { devCode: code }),
+      ...(!twilioConfigured ||
+      process.env.OTP_BYPASS === "true" ||
+      process.env.NODE_ENV === "development"
+        ? { devCode: code }
+        : {}),
     });
   } catch (error) {
     console.error("login error:", error);
@@ -331,14 +338,21 @@ const registerHandler = async (req, res) => {
 
     await OTP.create({ phone, code });
 
-    if (process.env.OTP_BYPASS !== "true") {
+    const twilioConfigured = !!(
+      process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    );
+    if (process.env.OTP_BYPASS !== "true" && twilioConfigured) {
       await sendOTP(phone, code);
     }
 
     res.status(200).json({
       success: true,
       message: `تم إرسال رمز التحقق إلى ${phone}`,
-      ...(process.env.NODE_ENV === "development" && { devCode: code }),
+      ...(!twilioConfigured ||
+      process.env.OTP_BYPASS === "true" ||
+      process.env.NODE_ENV === "development"
+        ? { devCode: code }
+        : {}),
     });
   } catch (error) {
     console.error("register error:", error);
