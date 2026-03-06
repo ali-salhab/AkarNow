@@ -600,6 +600,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 16,
     letterSpacing: 1,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   dropdown: {
     backgroundColor: "#fff",
@@ -648,6 +650,8 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     paddingVertical: 16,
     letterSpacing: 2,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   eyeBtn: { padding: 4 },
   // ── Login Button ──────────────────────────────────────────────────────────

@@ -282,6 +282,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: Colors.textPrimary,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   filterBtn: {
     width: 48,

@@ -409,9 +409,7 @@ export default function SignupScreen() {
           </View>
 
           {/* Password */}
-          <Text style={[styles.label, { marginTop: 16 }]}>
-            كلمة المرور
-          </Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>كلمة المرور</Text>
           <View style={styles.fieldRow}>
             <Ionicons
               name="lock-closed-outline"
@@ -881,6 +879,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.textPrimary,
     paddingVertical: 14,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   eyeBtn: { padding: 4 },
   // ── Submit button ─────────────────────────────────────────────────────────
