@@ -11,7 +11,6 @@ const propertySchema = new mongoose.Schema(
     // ─── Basic Info ────────────────────────────────────────────────────────
     title: {
       type: String,
-      required: [true, "Property title is required"],
       trim: true,
       maxlength: [150, "Title cannot exceed 150 characters"],
     },

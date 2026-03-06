@@ -42,7 +42,7 @@ router.delete("/users/:id", deleteUser);
 // ─── Properties ───────────────────────────────────────────────────────────────
 router.get("/properties", getPropertiesAdmin);
 router.post("/properties", uploadPropertyImages, createPropertyAdmin);
-router.patch("/properties/:id", updatePropertyAdmin);
+router.patch("/properties/:id", uploadPropertyImages, updatePropertyAdmin);
 router.patch("/properties/:id/approve", approveProperty);
 router.patch("/properties/:id/reject", rejectProperty);
 router.delete("/properties/:id", deletePropertyAdmin);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Search,
   Star,
@@ -10,6 +10,9 @@ import {
   Plus,
   ThumbsUp,
   ThumbsDown,
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { propertiesAPI } from "../services/api";
 import DataTable from "../components/DataTable";
@@ -73,6 +76,111 @@ const APPROVAL_TABS = [
   { value: "rejected", label: "مرفوضة" },
 ];
 
+// ── Inline image slider used in the property table rows ──────────────────────
+function ImageSlider({
+  images,
+  cover,
+}: {
+  images?: string[];
+  cover?: string | null;
+}) {
+  const all = [
+    ...(cover ? [cover] : []),
+    ...(images || []).filter((img) => img !== cover),
+  ].filter(Boolean) as string[];
+
+  const [idx, setIdx] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  if (all.length === 0)
+    return (
+      <div className="w-24 h-16 rounded-xl bg-gray-100 flex-shrink-0 flex items-center justify-center">
+        <svg
+          className="w-6 h-6 text-gray-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </div>
+    );
+
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((i) => (i - 1 + all.length) % all.length);
+  };
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((i) => (i + 1) % all.length);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 group bg-gray-100"
+      dir="ltr"
+    >
+      {/* Sliding strip */}
+      <div
+        className="flex h-full transition-transform duration-300 ease-in-out"
+        style={{
+          width: `${all.length * 100}%`,
+          transform: `translateX(-${(idx / all.length) * 100}%)`,
+        }}
+      >
+        {all.map((src, i) => (
+          <div
+            key={i}
+            className="h-full flex-shrink-0"
+            style={{ width: `${100 / all.length}%` }}
+          >
+            <img src={src} alt="" className="w-full h-full object-cover" />
+          </div>
+        ))}
+      </div>
+
+      {/* Prev / Next arrows — visible on hover */}
+      {all.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronLeft size={12} />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronRight size={12} />
+          </button>
+          {/* Dot indicators */}
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+            {all.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIdx(i);
+                }}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  i === idx ? "bg-white" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface PropertyForm {
   title: string;
   titleAr: string;
@@ -133,6 +241,13 @@ export default function Properties() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+
+  // Edit
+  const [editingProp, setEditingProp] = useState<Property | null>(null);
+  const [editForm, setEditForm] = useState<PropertyForm>(defaultForm);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -268,6 +383,8 @@ export default function Properties() {
       fd.set("area", String(Number(form.area)));
       fd.set("rooms", String(Number(form.rooms)));
       fd.set("bathrooms", String(Number(form.bathrooms)));
+      // If English title is empty, use Arabic title
+      if (!form.title) fd.set("title", form.titleAr || "بدون عنوان");
       // Append image files
       imageFiles.forEach((file) => fd.append("images", file));
 
@@ -285,27 +402,89 @@ export default function Properties() {
     setIsCreating(false);
   };
 
+  const openEdit = (prop: Property) => {
+    setEditingProp(prop);
+    setEditError("");
+    setEditImageFiles([]);
+    setEditForm({
+      title: prop.title || "",
+      titleAr: (prop as unknown as { titleAr?: string }).titleAr || "",
+      description: prop.description || "",
+      listingType: prop.listingType as "rent" | "sale" | "buy",
+      propertyType: prop.propertyType || "apartment",
+      price: String(prop.price || ""),
+      currency: prop.currency || "SAR",
+      area: String(prop.area || ""),
+      rooms: String(prop.rooms ?? 0),
+      bathrooms: String(prop.bathrooms ?? 0),
+      city:
+        typeof prop.city === "object"
+          ? (prop.city as { name: string }).name
+          : prop.city || "",
+      district: prop.district || "",
+      address: prop.address || "",
+      contactPhone: prop.contactPhone || "",
+    });
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProp) return;
+    setEditError("");
+    setIsEditing(true);
+    try {
+      let result;
+      if (editImageFiles.length > 0) {
+        const fd = new FormData();
+        Object.entries(editForm).forEach(([k, v]) => fd.append(k, String(v)));
+        fd.set("price", String(Number(editForm.price)));
+        fd.set("area", String(Number(editForm.area)));
+        fd.set("rooms", String(Number(editForm.rooms)));
+        fd.set("bathrooms", String(Number(editForm.bathrooms)));
+        if (!fd.get("title")) fd.set("title", editForm.titleAr || "بدون عنوان");
+        editImageFiles.forEach((file) => fd.append("images", file));
+        result = await propertiesAPI.update(editingProp._id, fd);
+      } else {
+        const payload: Record<string, unknown> = {
+          ...editForm,
+          price: Number(editForm.price),
+          area: Number(editForm.area),
+          rooms: Number(editForm.rooms),
+          bathrooms: Number(editForm.bathrooms),
+        };
+        if (!payload.title) payload.title = editForm.titleAr || "بدون عنوان";
+        result = await propertiesAPI.update(editingProp._id, payload);
+      }
+      setData((prev) =>
+        prev.map((p) => (p._id === editingProp._id ? result.data.data : p)),
+      );
+      setEditingProp(null);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setEditError(msg || "حدث خطأ، حاول مجدداً");
+    }
+    setIsEditing(false);
+  };
+
   const columns: Column<Property>[] = [
     {
       key: "title",
       header: "العقار",
       render: (row) => (
-        <div className="flex items-start gap-3 max-w-xs">
-          {row.coverImage || (row.images && row.images[0]) ? (
-            <img
-              src={(row.coverImage || row.images[0]) as string}
-              alt=""
-              className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-gray-100"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
-          )}
+        <div className="flex items-start gap-3 min-w-[200px]">
+          <ImageSlider
+            images={row.images as string[] | undefined}
+            cover={row.coverImage as string | undefined}
+          />
           <div className="min-w-0">
             <p className="font-semibold text-gray-900 truncate text-sm">
-              {row.title}
+              {row.title || (row as unknown as { titleAr?: string }).titleAr}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {typeof row.city === "object" ? row.city.name : row.city}
+              {typeof row.city === "object"
+                ? (row.city as { name: string }).name
+                : row.city}
               {row.district ? ` · ${row.district}` : ""}
             </p>
           </div>
@@ -377,7 +556,7 @@ export default function Properties() {
       key: "actions",
       header: "إجراءات",
       render: (row) => (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {row.approvalStatus === "pending" && (
             <>
               <button
@@ -400,6 +579,13 @@ export default function Properties() {
             </>
           )}
           <button
+            title="تعديل العقار"
+            onClick={() => openEdit(row)}
+            className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition-colors"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
             title={row.isFeatured ? "إلغاء التمييز" : "تمييز"}
             onClick={() => toggleFeatured(row)}
             className={`p-1.5 rounded-lg transition-colors ${row.isFeatured ? "text-yellow-500 bg-yellow-50 hover:bg-yellow-100" : "text-gray-300 hover:text-yellow-500 hover:bg-yellow-50"}`}
@@ -413,16 +599,22 @@ export default function Properties() {
           >
             {row.isVerified ? <CheckCircle size={14} /> : <XCircle size={14} />}
           </button>
+          {/* Enlarged toggle (تفعيل / تعطيل) */}
           <button
-            title={row.status === "available" ? "تعطيل" : "تفعيل"}
+            title={row.status === "available" ? "تعطيل العقار" : "تفعيل العقار"}
             onClick={() => toggleStatus(row)}
-            className={`p-1.5 rounded-lg transition-colors ${row.status === "available" ? "text-primary-600 bg-primary-50 hover:bg-primary-100" : "text-gray-300 hover:text-primary-500 hover:bg-primary-50"}`}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              row.status === "available"
+                ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
           >
             {row.status === "available" ? (
-              <ToggleRight size={14} />
+              <ToggleRight size={18} />
             ) : (
-              <ToggleLeft size={14} />
+              <ToggleLeft size={18} />
             )}
+            <span>{row.status === "available" ? "نشط" : "معطّل"}</span>
           </button>
           <button
             onClick={() => setDeleting(row)}
@@ -600,14 +792,14 @@ export default function Properties() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                العنوان (إنجليزي) *
+                العنوان (إنجليزي) —{" "}
+                <span className="text-gray-400">اختياري</span>
               </label>
               <input
-                required
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="input text-sm"
-                placeholder="Property title"
+                placeholder="Property title (optional)"
               />
             </div>
             <div>
@@ -800,7 +992,8 @@ export default function Properties() {
               <label className="block text-xs font-medium text-gray-600 mb-1">
                 صور العقار (حتى 10 صور)
               </label>
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
+              {/* Upload drop area */}
+              <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -809,49 +1002,72 @@ export default function Properties() {
                   onChange={(e) => {
                     if (e.target.files) {
                       const selected = Array.from(e.target.files).slice(0, 10);
-                      setImageFiles(selected);
+                      setImageFiles((prev) =>
+                        [...prev, ...selected].slice(0, 10),
+                      );
                     }
                   }}
                 />
-                {imageFiles.length === 0 ? (
-                  <>
-                    <svg
-                      className="w-8 h-8 text-gray-300 mb-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span className="text-xs text-gray-400">
-                      انقر لاختيار الصور
-                    </span>
-                  </>
-                ) : (
-                  <div className="flex flex-wrap gap-2 p-2 justify-center">
-                    {imageFiles.map((f, i) => (
-                      <span
-                        key={i}
-                        className="text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-lg px-2 py-1 truncate max-w-[120px]"
-                      >
-                        {f.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <svg
+                  className="w-6 h-6 text-gray-300 mb-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-xs text-gray-400">
+                  {imageFiles.length === 0
+                    ? "انقر لاختيار صور"
+                    : `إضافة المزيد (${imageFiles.length} مختارة)`}
+                </span>
               </label>
+              {/* Horizontal thumbnail scroll */}
+              {imageFiles.length > 0 && (
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" dir="ltr">
+                  {imageFiles.map((file, i) => {
+                    const url = URL.createObjectURL(file);
+                    return (
+                      <div key={i} className="relative flex-shrink-0">
+                        <img
+                          src={url}
+                          alt=""
+                          className="w-20 h-16 rounded-lg object-cover border border-gray-200"
+                          onLoad={() => URL.revokeObjectURL(url)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImageFiles((prev) =>
+                              prev.filter((_, j) => j !== i),
+                            )
+                          }
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                        {i === 0 && (
+                          <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-primary-600/80 text-white rounded px-1">
+                            غلاف
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {imageFiles.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setImageFiles([])}
                   className="mt-1 text-xs text-red-500 hover:underline"
                 >
-                  إلغاء اختيار الصور
+                  حذف جميع الصور
                 </button>
               )}
             </div>

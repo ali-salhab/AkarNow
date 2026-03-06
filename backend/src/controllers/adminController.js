@@ -375,13 +375,33 @@ exports.updatePropertyAdmin = async (req, res) => {
       "isFeatured",
       "isVerified",
       "title",
-      "price",
+      "titleAr",
       "description",
+      "listingType",
+      "propertyType",
+      "price",
+      "currency",
+      "area",
+      "rooms",
+      "bathrooms",
+      "city",
+      "district",
+      "address",
+      "contactPhone",
     ];
     const updates = {};
     allowedFields.forEach((f) => {
       if (req.body[f] !== undefined) updates[f] = req.body[f];
     });
+
+    // If new images uploaded, replace images array
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(
+        (f) => `/uploads/properties/${f.filename}`,
+      );
+      updates.images = newImages;
+      updates.coverImage = newImages[0];
+    }
 
     const property = await Property.findByIdAndUpdate(
       req.params.id,

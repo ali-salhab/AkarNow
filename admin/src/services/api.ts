@@ -74,8 +74,12 @@ export const propertiesAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  update: (id: string, data: Partial<Property>) =>
-    api.patch<ApiResponse<Property>>(`/admin/properties/${id}`, data),
+  update: (id: string, data: Partial<Property> | FormData) =>
+    data instanceof FormData
+      ? api.patch<ApiResponse<Property>>(`/admin/properties/${id}`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+      : api.patch<ApiResponse<Property>>(`/admin/properties/${id}`, data),
 
   approve: (id: string) =>
     api.patch<ApiResponse<Property>>(`/admin/properties/${id}/approve`),
