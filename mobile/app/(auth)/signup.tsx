@@ -124,6 +124,13 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       const fullPhone = `${selectedCountry.code}${phone}`;
+      console.log("[register] sending →", {
+        phone: fullPhone,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim() || undefined,
+        hasPassword: !!password,
+      });
       const result = await register(
         fullPhone,
         firstName.trim(),
@@ -143,7 +150,15 @@ export default function SignupScreen() {
       setResendTimer(60);
       setOtpModalVisible(true);
     } catch (error: any) {
-      Alert.alert("خطأ", error?.response?.data?.message || "فشل إنشاء الحساب");
+      console.error("[register] error:", error);
+      console.error("[register] response:", error?.response?.data);
+      console.error("[register] status:", error?.response?.status);
+      console.error("[register] message:", error?.message);
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "فشل إنشاء الحساب";
+      Alert.alert("خطأ", msg);
     } finally {
       setIsLoading(false);
     }
@@ -218,8 +233,11 @@ export default function SignupScreen() {
         setOtp(new Array(OTP_LENGTH).fill(""));
         inputRefs.current[0]?.focus();
       }
-    } catch {
-      Alert.alert("خطأ", "فشل التحقق. يرجى المحاولة مرة أخرى.");
+    } catch (err: any) {
+      console.error("[verifyOTP] error:", err);
+      console.error("[verifyOTP] response:", err?.response?.data);
+      console.error("[verifyOTP] status:", err?.response?.status);
+      Alert.alert("خطأ", err?.response?.data?.message || err?.message || "فشل التحقق. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsVerifying(false);
     }
@@ -234,8 +252,9 @@ export default function SignupScreen() {
       setDevCode(result.devCode);
       setOtp(new Array(OTP_LENGTH).fill(""));
       Alert.alert("تم الإرسال!", "تم إرسال رمز جديد إلى هاتفك.");
-    } catch {
-      Alert.alert("خطأ", "فشل إعادة الإرسال.");
+    } catch (err: any) {
+      console.error("[resendOTP] error:", err);
+      Alert.alert("خطأ", err?.response?.data?.message || "فشل إعادة الإرسال.");
     }
   };
 

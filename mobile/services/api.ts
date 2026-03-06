@@ -12,6 +12,8 @@ import { PropertyFilters, ApiResponse, Property, City, User } from "../types";
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "https://aqarnow-api.onrender.com/api";
 
+console.log("[api] BASE_URL =", BASE_URL);
+
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
@@ -27,6 +29,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log(`[api] → ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.data ?? "");
     return config;
   },
   (error) => Promise.reject(error),
@@ -34,10 +37,13 @@ api.interceptors.request.use(
 
 // ─── Response Interceptor: Handle 401 ─────────────────────────────────────────
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[api] ← ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
   async (error) => {
+    console.error(`[api] ✕ ${error?.response?.status ?? "network"} ${error?.config?.url}`, error?.response?.data ?? error?.message);
     if (error.response?.status === 401) {
-      // Token expired — clear storage
       await SecureStore.deleteItemAsync("auth_token");
       await SecureStore.deleteItemAsync("auth_user");
     }
