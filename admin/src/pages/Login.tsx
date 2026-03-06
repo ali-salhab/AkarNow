@@ -1,29 +1,64 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import Modal from "../components/Modal";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const { login, isLoading } = useAuthStore();
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const { login, isLoading, token } = useAuthStore();
   const navigate = useNavigate();
+
+  // Redirect as soon as the store has a token (handles React 18 batching)
+  useEffect(() => {
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [token, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     try {
       await login(email, password);
-      navigate("/dashboard");
     } catch (err: unknown) {
-      setError((err as Error).message || "فشل تسجيل الدخول");
+      const msg = (err as Error).message || "فشل تسجيل الدخول";
+      setError(msg);
+      setShowErrorModal(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 flex items-center justify-center p-4 overflow-hidden">
+      {/* Error Modal */}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="خطأ في تسجيل الدخول"
+        maxWidth="max-w-sm"
+      >
+        <div className="flex flex-col items-center gap-4 py-2">
+          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertCircle size={30} className="text-red-500" />
+          </div>
+          <p
+            className="text-gray-700 text-center font-medium text-sm"
+            dir="rtl"
+          >
+            {error}
+          </p>
+          <button
+            onClick={() => setShowErrorModal(false)}
+            className="btn-primary w-full py-2.5 text-sm"
+          >
+            حسناً
+          </button>
+        </div>
+      </Modal>
       {/* Decorative animated bubbles */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none animate-floatBubble" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none animate-floatBubble delay-500" />
@@ -52,12 +87,6 @@ export default function Login() {
           <h2 className="text-xl font-bold text-gray-900 mb-6 text-right">
             تسجيل الدخول للمتابعة
           </h2>
-
-          {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium text-right animate-fadeIn">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
