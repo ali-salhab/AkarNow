@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Search,
   Star,
@@ -77,8 +78,10 @@ const APPROVAL_TABS = [
 ];
 
 // Resolve image path → full URL (handles both absolute URLs and /uploads/… paths)
-const API_ORIGIN = (import.meta.env.VITE_API_URL as string || "")
-  .replace(/\/api\/?$/, "");
+const API_ORIGIN = ((import.meta.env.VITE_API_URL as string) || "").replace(
+  /\/api\/?$/,
+  "",
+);
 
 function resolveImg(src: string): string {
   if (!src) return src;
@@ -97,7 +100,9 @@ function ImageSlider({
   const all = [
     ...(cover ? [cover] : []),
     ...(images || []).filter((img) => img !== cover),
-  ].filter(Boolean).map(resolveImg) as string[];
+  ]
+    .filter(Boolean)
+    .map(resolveImg) as string[];
 
   const [idx, setIdx] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -122,7 +127,12 @@ function ImageSlider({
       </div>
     );
 
-  const [overlayPos, setOverlayPos] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [overlayPos, setOverlayPos] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  });
 
   const prev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -153,10 +163,17 @@ function ImageSlider({
   const strip = (w: number, h: number) => (
     <div
       className="flex h-full transition-transform duration-300 ease-in-out"
-      style={{ width: `${all.length * 100}%`, transform: `translateX(-${(idx / all.length) * 100}%)` }}
+      style={{
+        width: `${all.length * 100}%`,
+        transform: `translateX(-${(idx / all.length) * 100}%)`,
+      }}
     >
       {all.map((src, i) => (
-        <div key={i} className="h-full flex-shrink-0" style={{ width: `${100 / all.length}%` }}>
+        <div
+          key={i}
+          className="h-full flex-shrink-0"
+          style={{ width: `${100 / all.length}%` }}
+        >
           <img src={src} alt="" className="w-full h-full object-cover" />
         </div>
       ))}
@@ -192,8 +209,8 @@ function ImageSlider({
         )}
       </div>
 
-      {/* Fixed-position enlarged overlay — never clipped by table */}
-      {hovered && (
+      {/* Fixed-position enlarged overlay — rendered in portal to escape any stacking context */}
+      {hovered && createPortal(
         <div
           className="fixed pointer-events-none"
           style={{
@@ -201,7 +218,7 @@ function ImageSlider({
             left: overlayPos.left,
             width: overlayPos.width,
             height: overlayPos.height,
-            zIndex: 9999,
+            zIndex: 99999,
             borderRadius: 12,
             overflow: "hidden",
             boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
@@ -228,7 +245,8 @@ function ImageSlider({
               {idx + 1}/{all.length}
             </span>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
@@ -301,6 +319,7 @@ export default function Properties() {
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState("");
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
+  const [editKeptImages, setEditKeptImages] = useState<string[]>([]);
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -459,6 +478,7 @@ export default function Properties() {
     setEditingProp(prop);
     setEditError("");
     setEditImageFiles([]);
+    setEditKeptImages((prop.images as string[]) || []);
     setEditForm({
       title: prop.title || "",
       titleAr: (prop as unknown as { titleAr?: string }).titleAr || "",
@@ -486,32 +506,24 @@ export default function Properties() {
     setEditError("");
     setIsEditing(true);
     try {
-      let result;
-      if (editImageFiles.length > 0) {
-        const fd = new FormData();
-        Object.entries(editForm).forEach(([k, v]) => fd.append(k, String(v)));
-        fd.set("price", String(Number(editForm.price)));
-        fd.set("area", String(Number(editForm.area)));
-        fd.set("rooms", String(Number(editForm.rooms)));
-        fd.set("bathrooms", String(Number(editForm.bathrooms)));
-        if (!fd.get("title")) fd.set("title", editForm.titleAr || "بدون عنوان");
-        editImageFiles.forEach((file) => fd.append("images", file));
-        result = await propertiesAPI.update(editingProp._id, fd);
-      } else {
-        const payload: Record<string, unknown> = {
-          ...editForm,
-          price: Number(editForm.price),
-          area: Number(editForm.area),
-          rooms: Number(editForm.rooms),
-          bathrooms: Number(editForm.bathrooms),
-        };
-        if (!payload.title) payload.title = editForm.titleAr || "بدون عنوان";
-        result = await propertiesAPI.update(editingProp._id, payload);
-      }
+      // Always use FormData so we can send kept images + new files together
+      const fd = new FormData();
+      Object.entries(editForm).forEach(([k, v]) => fd.append(k, String(v)));
+      fd.set("price", String(Number(editForm.price)));
+      fd.set("area", String(Number(editForm.area)));
+      fd.set("rooms", String(Number(editForm.rooms)));
+      fd.set("bathrooms", String(Number(editForm.bathrooms)));
+      if (!fd.get("title")) fd.set("title", editForm.titleAr || "بدون عنوان");
+      // Send the list of existing image URLs to keep
+      fd.append("keepImages", JSON.stringify(editKeptImages));
+      // Append any new image files
+      editImageFiles.forEach((file) => fd.append("images", file));
+      const result = await propertiesAPI.update(editingProp._id, fd);
       setData((prev) =>
         prev.map((p) => (p._id === editingProp._id ? result.data.data : p)),
       );
       setEditingProp(null);
+      setEditKeptImages([]);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;
@@ -1082,7 +1094,10 @@ export default function Properties() {
               </label>
               {/* Horizontal thumbnail scroll */}
               {imageFiles.length > 0 && (
-                <div className="mt-2 flex gap-2 overflow-x-auto pt-2 pb-1" dir="ltr">
+                <div
+                  className="mt-2 flex gap-2 overflow-x-auto pt-2 pb-1"
+                  dir="ltr"
+                >
                   {imageFiles.map((file, i) => {
                     const url = URL.createObjectURL(file);
                     return (
@@ -1096,7 +1111,9 @@ export default function Properties() {
                         <button
                           type="button"
                           onClick={() =>
-                            setImageFiles((prev) => prev.filter((_, j) => j !== i))
+                            setImageFiles((prev) =>
+                              prev.filter((_, j) => j !== i),
+                            )
                           }
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
                         >
@@ -1153,32 +1170,13 @@ export default function Properties() {
         onClose={() => {
           setEditingProp(null);
           setEditImageFiles([]);
+          setEditKeptImages([]);
         }}
         title="تعديل العقار"
         maxWidth="max-w-2xl"
         scrollable
       >
         <form onSubmit={handleEditSave} className="space-y-4">
-          {/* Existing images preview */}
-          {editingProp &&
-            editingProp.images &&
-            editingProp.images.length > 0 &&
-            editImageFiles.length === 0 && (
-              <div>
-                <p className="text-xs text-gray-500 mb-1">الصور الحالية</p>
-                <div className="flex gap-2 overflow-x-auto pb-1" dir="ltr">
-                  {editingProp.images.map((img, i) => (
-                    <img
-                      key={i}
-                      src={resolveImg(img)}
-                      alt=""
-                      className="w-20 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0"
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -1391,14 +1389,88 @@ export default function Properties() {
               />
             </div>
 
-            {/* Replace images (optional) */}
+            {/* Image management — view all, delete individual, add new */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                استبدال الصور —{" "}
-                <span className="text-gray-400">
-                  اختياري، سيحل محل الصور الحالية
-                </span>
-              </label>
+              <p className="text-xs font-medium text-gray-600 mb-1">
+                إدارة الصور
+                <span className="text-gray-400 mr-1">— احذف أو أضف صوراً</span>
+              </p>
+
+              {/* Existing kept images — each with individual × */}
+              {editKeptImages.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2" dir="ltr">
+                  {editKeptImages.map((img, i) => (
+                    <div key={img + i} className="relative flex-shrink-0">
+                      <img
+                        src={resolveImg(img)}
+                        alt=""
+                        className="w-20 h-16 rounded-lg object-cover border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditKeptImages((prev) => prev.filter((_, j) => j !== i))
+                        }
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                      {i === 0 && (
+                        <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-primary-600/80 text-white rounded px-1">
+                          غلاف
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Warning when all images would be removed */}
+              {editKeptImages.length === 0 && editImageFiles.length === 0 && (
+                <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2 mb-2">
+                  لا توجد صور — سيتم حفظ العقار بدون صور
+                </p>
+              )}
+
+              {/* New files preview — blue border distinguishes them from existing */}
+              {editImageFiles.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2" dir="ltr">
+                  {editImageFiles.map((file, i) => {
+                    const url = URL.createObjectURL(file);
+                    return (
+                      <div key={i} className="relative flex-shrink-0">
+                        <img
+                          src={url}
+                          alt=""
+                          className="w-20 h-16 rounded-lg object-cover border border-blue-300"
+                          onLoad={() => URL.revokeObjectURL(url)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditImageFiles((prev) =>
+                              prev.filter((_, j) => j !== i),
+                            )
+                          }
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                        <span className="absolute top-0.5 left-0.5 text-[9px] bg-green-600/80 text-white rounded px-1">
+                          جديد
+                        </span>
+                        {i === 0 && editKeptImages.length === 0 && (
+                          <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-blue-600/80 text-white rounded px-1">
+                            غلاف
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Upload zone — adds to existing, does not replace */}
               <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
                 <input
                   type="file"
@@ -1407,7 +1479,7 @@ export default function Properties() {
                   className="hidden"
                   onChange={(e) => {
                     if (e.target.files) {
-                      const selected = Array.from(e.target.files).slice(0, 10);
+                      const selected = Array.from(e.target.files);
                       setEditImageFiles((prev) =>
                         [...prev, ...selected].slice(0, 10),
                       );
@@ -1427,52 +1499,8 @@ export default function Properties() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="text-xs text-gray-400">
-                  {editImageFiles.length === 0
-                    ? "انقر لاختيار صور جديدة"
-                    : `إضافة المزيد (${editImageFiles.length} مختارة)`}
-                </span>
+                <span className="text-xs text-gray-400">انقر لإضافة صور جديدة</span>
               </label>
-              {editImageFiles.length > 0 && (
-                <div className="mt-2 flex gap-2 overflow-x-auto pt-2 pb-1" dir="ltr">
-                  {editImageFiles.map((file, i) => {
-                    const url = URL.createObjectURL(file);
-                    return (
-                      <div key={i} className="relative flex-shrink-0">
-                        <img
-                          src={url}
-                          alt=""
-                          className="w-20 h-16 rounded-lg object-cover border border-gray-200"
-                          onLoad={() => URL.revokeObjectURL(url)}
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditImageFiles((prev) => prev.filter((_, j) => j !== i))
-                          }
-                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                        {i === 0 && (
-                          <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-primary-600/80 text-white rounded px-1">
-                            غلاف
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {editImageFiles.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setEditImageFiles([])}
-                  className="mt-1 text-xs text-red-500 hover:underline"
-                >
-                  إلغاء استبدال الصور
-                </button>
-              )}
             </div>
           </div>
 
@@ -1487,6 +1515,7 @@ export default function Properties() {
               onClick={() => {
                 setEditingProp(null);
                 setEditImageFiles([]);
+                setEditKeptImages([]);
               }}
               className="btn-secondary text-sm"
             >

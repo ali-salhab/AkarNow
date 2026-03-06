@@ -394,11 +394,21 @@ exports.updatePropertyAdmin = async (req, res) => {
       if (req.body[f] !== undefined) updates[f] = req.body[f];
     });
 
-    // If new images uploaded, replace images array (Cloudinary — f.path is the CDN URL)
+    // Merge kept existing images + any newly uploaded images
+    // keepImages is sent as a JSON string array of Cloudinary URLs to retain
+    const keepImages = req.body.keepImages
+      ? JSON.parse(req.body.keepImages)
+      : null;
+
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map((f) => f.path);
-      updates.images = newImages;
-      updates.coverImage = newImages[0];
+      const retained = keepImages !== null ? keepImages : [];
+      updates.images = [...retained, ...newImages];
+      updates.coverImage = updates.images[0] || null;
+    } else if (keepImages !== null) {
+      // No new uploads but user may have removed some existing images
+      updates.images = keepImages;
+      updates.coverImage = keepImages[0] || null;
     }
 
     const property = await Property.findByIdAndUpdate(
