@@ -60,6 +60,8 @@ logs
 .env.local
 .env.development
 .env.production
+# Allow admin production env (contains only a public API URL, not secrets)
+!admin/.env.production
 
 # ==============================
 # VS Code
