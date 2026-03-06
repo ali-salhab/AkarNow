@@ -136,12 +136,7 @@ export default function Properties() {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, statusFilter, listingFilter, approvalTab]);
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = { page, limit: 15 };
@@ -501,6 +496,7 @@ export default function Properties() {
             setShowCreate(true);
             setCreateError("");
             setForm(defaultForm);
+            setImageFiles([]);
           }}
           className="mr-auto flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
         >
@@ -592,8 +588,13 @@ export default function Properties() {
       {/* Create property modal */}
       <Modal
         isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
+        onClose={() => {
+          setShowCreate(false);
+          setImageFiles([]);
+        }}
         title="إضافة عقار جديد"
+        maxWidth="max-w-2xl"
+        scrollable
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -724,19 +725,13 @@ export default function Properties() {
               <label className="block text-xs font-medium text-gray-600 mb-1">
                 المدينة *
               </label>
-              <select
+              <input
                 required
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 className="input text-sm"
-              >
-                <option value="">اختر المدينة</option>
-                {cities.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.nameAr} ({c.name})
-                  </option>
-                ))}
-              </select>
+                placeholder="مثال: الرياض"
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -799,6 +794,66 @@ export default function Properties() {
                 className="input text-sm"
                 placeholder="شارع، حي..."
               />
+            </div>
+            {/* Image Upload */}
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                صور العقار (حتى 10 صور)
+              </label>
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const selected = Array.from(e.target.files).slice(0, 10);
+                      setImageFiles(selected);
+                    }
+                  }}
+                />
+                {imageFiles.length === 0 ? (
+                  <>
+                    <svg
+                      className="w-8 h-8 text-gray-300 mb-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="text-xs text-gray-400">
+                      انقر لاختيار الصور
+                    </span>
+                  </>
+                ) : (
+                  <div className="flex flex-wrap gap-2 p-2 justify-center">
+                    {imageFiles.map((f, i) => (
+                      <span
+                        key={i}
+                        className="text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-lg px-2 py-1 truncate max-w-[120px]"
+                      >
+                        {f.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </label>
+              {imageFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setImageFiles([])}
+                  className="mt-1 text-xs text-red-500 hover:underline"
+                >
+                  إلغاء اختيار الصور
+                </button>
+              )}
             </div>
           </div>
           {createError && (
