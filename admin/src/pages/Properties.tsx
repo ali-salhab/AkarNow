@@ -122,6 +122,8 @@ function ImageSlider({
       </div>
     );
 
+  const [overlayPos, setOverlayPos] = useState({ top: 0, left: 0, width: 0, height: 0 });
+
   const prev = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIdx((i) => (i - 1 + all.length) % all.length);
@@ -131,75 +133,104 @@ function ImageSlider({
     setIdx((i) => (i + 1) % all.length);
   };
 
-  return (
+  const handleEnter = () => {
+    if (containerRef.current) {
+      const r = containerRef.current.getBoundingClientRect();
+      const SCALE = 2.8;
+      const W = r.width * SCALE;
+      const H = r.height * SCALE;
+      setOverlayPos({
+        top: r.top + r.height / 2 - H / 2,
+        left: r.left + r.width / 2 - W / 2,
+        width: W,
+        height: H,
+      });
+    }
+    setHovered(true);
+  };
+
+  // Slider strip shared renderer
+  const strip = (w: number, h: number) => (
     <div
-      ref={containerRef}
-      className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 group bg-gray-100"
-      style={{
-        transform: hovered ? "scale(2.4)" : "scale(1)",
-        transformOrigin: "top right",
-        zIndex: hovered ? 50 : "auto",
-        transition: "transform 250ms ease, box-shadow 250ms ease",
-        boxShadow: hovered ? "0 8px 30px rgba(0,0,0,0.35)" : "none",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      dir="ltr"
+      className="flex h-full transition-transform duration-300 ease-in-out"
+      style={{ width: `${all.length * 100}%`, transform: `translateX(-${(idx / all.length) * 100}%)` }}
     >
-      {/* Sliding strip */}
+      {all.map((src, i) => (
+        <div key={i} className="h-full flex-shrink-0" style={{ width: `${100 / all.length}%` }}>
+          <img src={src} alt="" className="w-full h-full object-cover" />
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      {/* Small thumbnail in table — nav arrows here since overlay is pointer-events-none */}
       <div
-        className="flex h-full transition-transform duration-300 ease-in-out"
-        style={{
-          width: `${all.length * 100}%`,
-          transform: `translateX(-${(idx / all.length) * 100}%)`,
-        }}
+        ref={containerRef}
+        className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 cursor-pointer group"
+        onMouseEnter={handleEnter}
+        onMouseLeave={() => setHovered(false)}
+        dir="ltr"
       >
-        {all.map((src, i) => (
-          <div
-            key={i}
-            className="h-full flex-shrink-0"
-            style={{ width: `${100 / all.length}%` }}
-          >
-            <img src={src} alt="" className="w-full h-full object-cover" />
-          </div>
-        ))}
+        {strip(96, 64)}
+        {all.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+            >
+              <ChevronLeft size={12} />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto"
+            >
+              <ChevronRight size={12} />
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Prev / Next arrows — visible on hover */}
-      {all.length > 1 && (
-        <>
-          <button
-            onClick={prev}
-            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity"
-            style={{ opacity: hovered ? 1 : 0 }}
-          >
-            <ChevronLeft size={12} />
-          </button>
-          <button
-            onClick={next}
-            className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity"
-            style={{ opacity: hovered ? 1 : 0 }}
-          >
-            <ChevronRight size={12} />
-          </button>
+      {/* Fixed-position enlarged overlay — never clipped by table */}
+      {hovered && (
+        <div
+          className="fixed pointer-events-none"
+          style={{
+            top: overlayPos.top,
+            left: overlayPos.left,
+            width: overlayPos.width,
+            height: overlayPos.height,
+            zIndex: 9999,
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+          }}
+          dir="ltr"
+        >
+          {strip(overlayPos.width, overlayPos.height)}
           {/* Dot indicators */}
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-            {all.map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIdx(i);
-                }}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  i === idx ? "bg-white" : "bg-white/50"
-                }`}
-              />
-            ))}
-          </div>
-        </>
+          {all.length > 1 && (
+            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+              {all.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full ${
+                    i === idx ? "bg-white" : "bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+          {/* Image counter badge */}
+          {all.length > 1 && (
+            <span className="absolute top-2 right-2 bg-black/60 text-white text-[11px] px-1.5 py-0.5 rounded-md">
+              {idx + 1}/{all.length}
+            </span>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1051,7 +1082,7 @@ export default function Properties() {
               </label>
               {/* Horizontal thumbnail scroll */}
               {imageFiles.length > 0 && (
-                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" dir="ltr">
+                <div className="mt-2 flex gap-2 overflow-x-auto pt-2 pb-1" dir="ltr">
                   {imageFiles.map((file, i) => {
                     const url = URL.createObjectURL(file);
                     return (
@@ -1065,9 +1096,7 @@ export default function Properties() {
                         <button
                           type="button"
                           onClick={() =>
-                            setImageFiles((prev) =>
-                              prev.filter((_, j) => j !== i),
-                            )
+                            setImageFiles((prev) => prev.filter((_, j) => j !== i))
                           }
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
                         >
@@ -1405,7 +1434,7 @@ export default function Properties() {
                 </span>
               </label>
               {editImageFiles.length > 0 && (
-                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" dir="ltr">
+                <div className="mt-2 flex gap-2 overflow-x-auto pt-2 pb-1" dir="ltr">
                   {editImageFiles.map((file, i) => {
                     const url = URL.createObjectURL(file);
                     return (
@@ -1419,9 +1448,7 @@ export default function Properties() {
                         <button
                           type="button"
                           onClick={() =>
-                            setEditImageFiles((prev) =>
-                              prev.filter((_, j) => j !== i),
-                            )
+                            setEditImageFiles((prev) => prev.filter((_, j) => j !== i))
                           }
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
                         >
