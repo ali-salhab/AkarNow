@@ -1095,6 +1095,368 @@ export default function Properties() {
           </div>
         </form>
       </Modal>
+
+      {/* ── Edit Property Modal ── */}
+      <Modal
+        isOpen={!!editingProp}
+        onClose={() => {
+          setEditingProp(null);
+          setEditImageFiles([]);
+        }}
+        title="تعديل العقار"
+        maxWidth="max-w-2xl"
+        scrollable
+      >
+        <form onSubmit={handleEditSave} className="space-y-4">
+          {/* Existing images preview */}
+          {editingProp &&
+            editingProp.images &&
+            editingProp.images.length > 0 &&
+            editImageFiles.length === 0 && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">الصور الحالية</p>
+                <div className="flex gap-2 overflow-x-auto pb-1" dir="ltr">
+                  {editingProp.images.map((img, i) => (
+                    <img
+                      key={i}
+                      src={
+                        img.startsWith("http")
+                          ? img
+                          : `${import.meta.env.VITE_API_URL || ""}/${img}`
+                      }
+                      alt=""
+                      className="w-20 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                العنوان (إنجليزي) —{" "}
+                <span className="text-gray-400">اختياري</span>
+              </label>
+              <input
+                value={editForm.title}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, title: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="Property title (optional)"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                العنوان (عربي)
+              </label>
+              <input
+                value={editForm.titleAr}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, titleAr: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="عنوان العقار"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                الوصف
+              </label>
+              <textarea
+                rows={2}
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: e.target.value })
+                }
+                className="input resize-none text-sm"
+                placeholder="وصف العقار..."
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                نوع الإعلان
+              </label>
+              <select
+                value={editForm.listingType}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    listingType: e.target.value as "rent" | "sale" | "buy",
+                  })
+                }
+                className="input text-sm"
+              >
+                <option value="sale">للبيع</option>
+                <option value="rent">للإيجار</option>
+                <option value="buy">شراء</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                نوع العقار
+              </label>
+              <select
+                value={editForm.propertyType}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, propertyType: e.target.value })
+                }
+                className="input text-sm"
+              >
+                <option value="apartment">شقة</option>
+                <option value="villa">فيلا</option>
+                <option value="chalet">شاليه</option>
+                <option value="studio">استوديو</option>
+                <option value="office">مكتب</option>
+                <option value="land">أرض</option>
+                <option value="warehouse">مستودع</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                السعر
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={editForm.price}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, price: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                العملة
+              </label>
+              <select
+                value={editForm.currency}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, currency: e.target.value })
+                }
+                className="input text-sm"
+              >
+                {["SAR", "AED", "KWD", "BHD", "QAR", "OMR", "EGP", "USD"].map(
+                  (c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                المساحة (م²)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={editForm.area}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, area: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="150"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                المدينة
+              </label>
+              <input
+                value={editForm.city}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, city: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="مثال: الرياض"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                الغرف
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={editForm.rooms}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, rooms: e.target.value })
+                }
+                className="input text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                الحمامات
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={editForm.bathrooms}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, bathrooms: e.target.value })
+                }
+                className="input text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                الحي
+              </label>
+              <input
+                value={editForm.district}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, district: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="اسم الحي"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                هاتف التواصل
+              </label>
+              <input
+                value={editForm.contactPhone}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, contactPhone: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="+966..."
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                العنوان التفصيلي
+              </label>
+              <input
+                value={editForm.address}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, address: e.target.value })
+                }
+                className="input text-sm"
+                placeholder="شارع، حي..."
+              />
+            </div>
+
+            {/* Replace images (optional) */}
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                استبدال الصور —{" "}
+                <span className="text-gray-400">
+                  اختياري، سيحل محل الصور الحالية
+                </span>
+              </label>
+              <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const selected = Array.from(e.target.files).slice(0, 10);
+                      setEditImageFiles((prev) =>
+                        [...prev, ...selected].slice(0, 10),
+                      );
+                    }
+                  }}
+                />
+                <svg
+                  className="w-6 h-6 text-gray-300 mb-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-xs text-gray-400">
+                  {editImageFiles.length === 0
+                    ? "انقر لاختيار صور جديدة"
+                    : `إضافة المزيد (${editImageFiles.length} مختارة)`}
+                </span>
+              </label>
+              {editImageFiles.length > 0 && (
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" dir="ltr">
+                  {editImageFiles.map((file, i) => {
+                    const url = URL.createObjectURL(file);
+                    return (
+                      <div key={i} className="relative flex-shrink-0">
+                        <img
+                          src={url}
+                          alt=""
+                          className="w-20 h-16 rounded-lg object-cover border border-gray-200"
+                          onLoad={() => URL.revokeObjectURL(url)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditImageFiles((prev) =>
+                              prev.filter((_, j) => j !== i),
+                            )
+                          }
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                        {i === 0 && (
+                          <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-primary-600/80 text-white rounded px-1">
+                            غلاف
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {editImageFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setEditImageFiles([])}
+                  className="mt-1 text-xs text-red-500 hover:underline"
+                >
+                  إلغاء استبدال الصور
+                </button>
+              )}
+            </div>
+          </div>
+
+          {editError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">
+              {editError}
+            </p>
+          )}
+          <div className="flex justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setEditingProp(null);
+                setEditImageFiles([]);
+              }}
+              className="btn-secondary text-sm"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              disabled={isEditing}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+            >
+              {isEditing ? "جارٍ الحفظ…" : "حفظ التعديلات"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

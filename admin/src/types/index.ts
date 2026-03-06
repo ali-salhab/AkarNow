@@ -64,6 +64,7 @@ export interface Property {
   owner?: { _id: string; name?: string; phone: string };
   contactPhone?: string;
   agentName?: string;
+  address?: string;
   createdAt: string;
 }
 
