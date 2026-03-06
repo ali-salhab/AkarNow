@@ -102,10 +102,14 @@ exports.getDashboardStats = async (req, res) => {
       }),
       Property.countDocuments(),
       Property.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
-      Property.countDocuments({ status: "active" }),
+      Property.countDocuments({ status: "available" }),
       Property.countDocuments({ isFeatured: true }),
       Favorite.countDocuments(),
-      City.countDocuments({ isActive: true }),
+      Property.aggregate([
+        { $match: { city: { $ne: null, $ne: "" } } },
+        { $group: { _id: "$city" } },
+        { $count: "total" },
+      ]).then((r) => r[0]?.total || 0),
       Property.aggregate([
         { $group: { _id: "$propertyType", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
@@ -114,24 +118,11 @@ exports.getDashboardStats = async (req, res) => {
         { $group: { _id: "$listingType", count: { $sum: 1 } } },
       ]),
       Property.aggregate([
+        { $match: { city: { $ne: null, $ne: "" } } },
         { $group: { _id: "$city", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 5 },
-        {
-          $lookup: {
-            from: "cities",
-            localField: "_id",
-            foreignField: "_id",
-            as: "cityInfo",
-          },
-        },
-        { $unwind: { path: "$cityInfo", preserveNullAndEmpty: true } },
-        {
-          $project: {
-            count: 1,
-            name: { $ifNull: ["$cityInfo.name", "Unknown"] },
-          },
-        },
+        { $project: { count: 1, name: "$_id" } },
       ]),
       User.aggregate([
         {
@@ -350,7 +341,6 @@ exports.getPropertiesAdmin = async (req, res) => {
 
     const [properties, total] = await Promise.all([
       Property.find(query)
-        .populate("city", "name nameAr")
         .populate("owner", "name phone")
         .select("-__v")
         .sort({ createdAt: -1 })
@@ -397,9 +387,7 @@ exports.updatePropertyAdmin = async (req, res) => {
       req.params.id,
       { $set: updates },
       { new: true, runValidators: true },
-    )
-      .populate("city", "name")
-      .populate("owner", "name phone");
+    ).populate("owner", "name phone");
 
     if (!property)
       return res
@@ -537,14 +525,18 @@ exports.deleteCityAdmin = async (req, res) => {
  */
 exports.createPropertyAdmin = async (req, res) => {
   try {
+    // Build images array from uploaded files
+    const uploadedImages = req.files
+      ? req.files.map((f) => `/uploads/properties/${f.filename}`)
+      : [];
+
     const property = await Property.create({
       ...req.body,
+      images: uploadedImages,
+      coverImage: uploadedImages[0] || null,
       approvalStatus: "approved",
     });
-    const populated = await property.populate([
-      { path: "city", select: "name nameAr" },
-      { path: "owner", select: "name phone" },
-    ]);
+    const populated = await property.populate("owner", "name phone");
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -561,9 +553,7 @@ exports.approveProperty = async (req, res) => {
       req.params.id,
       { $set: { approvalStatus: "approved", rejectionReason: null } },
       { new: true },
-    )
-      .populate("city", "name nameAr")
-      .populate("owner", "name phone");
+    ).populate("owner", "name phone");
 
     if (!property)
       return res
@@ -592,9 +582,7 @@ exports.rejectProperty = async (req, res) => {
         },
       },
       { new: true },
-    )
-      .populate("city", "name nameAr")
-      .populate("owner", "name phone");
+    ).populate("owner", "name phone");
 
     if (!property)
       return res

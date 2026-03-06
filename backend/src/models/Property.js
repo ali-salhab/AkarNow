@@ -74,9 +74,8 @@ const propertySchema = new mongoose.Schema(
 
     // ─── Location ─────────────────────────────────────────────────────────
     city: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "City",
-      required: [true, "City is required"],
+      type: String,
+      trim: true,
     },
 
     district: {

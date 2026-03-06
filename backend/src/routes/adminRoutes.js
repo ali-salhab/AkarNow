@@ -22,6 +22,7 @@ const {
   rejectVerification,
 } = require("../controllers/adminController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { uploadPropertyImages } = require("../middleware/upload");
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 router.post("/login", adminLogin);
@@ -40,7 +41,7 @@ router.delete("/users/:id", deleteUser);
 
 // ─── Properties ───────────────────────────────────────────────────────────────
 router.get("/properties", getPropertiesAdmin);
-router.post("/properties", createPropertyAdmin);
+router.post("/properties", uploadPropertyImages, createPropertyAdmin);
 router.patch("/properties/:id", updatePropertyAdmin);
 router.patch("/properties/:id/approve", approveProperty);
 router.patch("/properties/:id/reject", rejectProperty);

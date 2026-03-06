@@ -103,7 +103,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">أقار ناو</h1>
+              <h1 className="text-3xl font-bold tracking-tight">عقارنو </h1>
               <p className="text-white/55 text-sm mt-0.5">
                 منصة العقارات الذكية
               </p>

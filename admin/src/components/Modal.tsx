@@ -7,6 +7,7 @@ interface Props {
   title: string;
   children: React.ReactNode;
   maxWidth?: string;
+  scrollable?: boolean;
 }
 
 export default function Modal({
@@ -15,6 +16,7 @@ export default function Modal({
   title,
   children,
   maxWidth = "max-w-lg",
+  scrollable = false,
 }: Props) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -41,10 +43,10 @@ export default function Modal({
       />
       {/* Dialog */}
       <div
-        className={`relative w-full ${maxWidth} bg-white rounded-2xl shadow-2xl animate-scaleIn`}
+        className={`relative w-full ${maxWidth} bg-white rounded-2xl shadow-2xl animate-scaleIn flex flex-col ${scrollable ? "max-h-[90vh]" : ""}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
@@ -54,7 +56,7 @@ export default function Modal({
           </button>
         </div>
         {/* Body */}
-        <div className="px-6 py-5">{children}</div>
+        <div className={`px-6 py-5 ${scrollable ? "overflow-y-auto" : ""}`}>{children}</div>
       </div>
     </div>
   );

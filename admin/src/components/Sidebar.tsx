@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Building2,
   Users,
-  MapPin,
   LogOut,
   ChevronLeft,
   ShieldCheck,
@@ -16,7 +15,6 @@ const navItems = [
   { to: "/properties", icon: Building2, label: "العقارات" },
   { to: "/users", icon: Users, label: "المستخدمون" },
   { to: "/verifications", icon: ShieldCheck, label: "التوثيق" },
-  { to: "/cities", icon: MapPin, label: "المدن" },
 ];
 
 interface Props {

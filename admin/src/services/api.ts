@@ -69,8 +69,10 @@ export const propertiesAPI = {
   getAll: (params?: Record<string, string | number>) =>
     api.get<PaginatedResponse<Property>>("/admin/properties", { params }),
 
-  create: (data: Partial<Property> & Record<string, unknown>) =>
-    api.post<ApiResponse<Property>>("/admin/properties", data),
+  create: (data: FormData) =>
+    api.post<ApiResponse<Property>>("/admin/properties", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 
   update: (id: string, data: Partial<Property>) =>
     api.patch<ApiResponse<Property>>(`/admin/properties/${id}`, data),
