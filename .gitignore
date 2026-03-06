@@ -41,6 +41,13 @@ ios/*.xcuserstate
 ios/*.xcodeproj/project.xcworkspace/
 
 # ==============================
+# Expo CNG / Prebuild — generated native folders
+# EAS Build regenerates these from app.json via prebuild.
+# ==============================
+mobile/android/
+mobile/ios/
+
+# ==============================
 # Metro / Cache
 # ==============================
 .cache/
