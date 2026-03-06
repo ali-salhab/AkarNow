@@ -544,9 +544,7 @@ exports.deleteCityAdmin = async (req, res) => {
 exports.createPropertyAdmin = async (req, res) => {
   try {
     // Build images array from uploaded files (Cloudinary — f.path is the CDN URL)
-    const uploadedImages = req.files
-      ? req.files.map((f) => f.path)
-      : [];
+    const uploadedImages = req.files ? req.files.map((f) => f.path) : [];
 
     const property = await Property.create({
       ...req.body,
