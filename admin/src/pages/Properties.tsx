@@ -11,11 +11,11 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from "lucide-react";
-import { propertiesAPI, citiesAPI } from "../services/api";
+import { propertiesAPI } from "../services/api";
 import DataTable from "../components/DataTable";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Modal from "../components/Modal";
-import type { Property, City, Column } from "../types";
+import type { Property, Column } from "../types";
 import { useDebounce } from "../hooks/useDebounce";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -132,18 +132,16 @@ export default function Properties() {
   const [form, setForm] = useState<PropertyForm>(defaultForm);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
-  const [cities, setCities] = useState<City[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   const debouncedSearch = useDebounce(search, 400);
 
   useEffect(() => {
-    citiesAPI
-      .getAll()
-      .then((res) => setCities(res.data.data))
-      .catch(() => {});
-  }, []);
-
-  const fetchData = useCallback(async () => {
+    fetchData();
+  }, [fetchData]);
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter, listingFilter, approvalTab]);
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = { page, limit: 15 };
@@ -267,18 +265,23 @@ export default function Properties() {
     setCreateError("");
     setIsCreating(true);
     try {
-      const payload = {
-        ...form,
-        price: Number(form.price),
-        area: Number(form.area),
-        rooms: Number(form.rooms),
-        bathrooms: Number(form.bathrooms),
-      };
-      const res = await propertiesAPI.create(payload);
+      const fd = new FormData();
+      // Append text fields
+      Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)));
+      // Convert numeric strings to numbers
+      fd.set("price", String(Number(form.price)));
+      fd.set("area", String(Number(form.area)));
+      fd.set("rooms", String(Number(form.rooms)));
+      fd.set("bathrooms", String(Number(form.bathrooms)));
+      // Append image files
+      imageFiles.forEach((file) => fd.append("images", file));
+
+      const res = await propertiesAPI.create(fd);
       setData((prev) => [res.data.data, ...prev]);
       setTotal((t) => t + 1);
       setShowCreate(false);
       setForm(defaultForm);
+      setImageFiles([]);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;

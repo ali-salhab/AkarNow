@@ -56,7 +56,9 @@ export default function Modal({
           </button>
         </div>
         {/* Body */}
-        <div className={`px-6 py-5 ${scrollable ? "overflow-y-auto" : ""}`}>{children}</div>
+        <div className={`px-6 py-5 ${scrollable ? "overflow-y-auto" : ""}`}>
+          {children}
+        </div>
       </div>
     </div>
   );
