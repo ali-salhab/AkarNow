@@ -90,10 +90,7 @@ export default function LocationPicker({
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "صلاحية الموقع",
-          "يرجى السماح للتطبيق بالوصول إلى موقعك",
-        );
+        Alert.alert("صلاحية الموقع", "يرجى السماح للتطبيق بالوصول إلى موقعك");
         setLocating(false);
         return;
       }
@@ -179,9 +176,7 @@ export default function LocationPicker({
         )}
 
         {/* Bottom controls */}
-        <View
-          style={[styles.bottom, { paddingBottom: insets.bottom + 16 }]}
-        >
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 16 }]}>
           {/* My location button */}
           <TouchableOpacity
             style={styles.myLocBtn}

@@ -80,9 +80,7 @@ export default function TabsLayout() {
               </View>
             </View>
           ),
-          tabBarLabel: () => (
-            <Text style={styles.addBtnLabel}>نشر</Text>
-          ),
+          tabBarLabel: () => <Text style={styles.addBtnLabel}>نشر</Text>,
         }}
       />
       <Tabs.Screen

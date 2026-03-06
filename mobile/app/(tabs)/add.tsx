@@ -55,7 +55,9 @@ export default function AddPropertyScreen() {
   // ── Form fields ────────────────────────────────────────────────────────────
   const [titleAr, setTitleAr] = useState("");
   const [description, setDescription] = useState("");
-  const [listingType, setListingType] = useState<"rent" | "sale" | "buy">("sale");
+  const [listingType, setListingType] = useState<"rent" | "sale" | "buy">(
+    "sale",
+  );
   const [propertyType, setPropertyType] = useState("apartment");
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState("SAR");
@@ -78,7 +80,11 @@ export default function AddPropertyScreen() {
   if (!isAuthenticated) {
     return (
       <View style={styles.authWall}>
-        <Ionicons name="lock-closed-outline" size={56} color={Colors.textMuted} />
+        <Ionicons
+          name="lock-closed-outline"
+          size={56}
+          color={Colors.textMuted}
+        />
         <Text style={styles.authWallTitle}>تسجيل الدخول مطلوب</Text>
         <Text style={styles.authWallSub}>
           يجب عليك تسجيل الدخول أولاً لإضافة عقار
@@ -228,9 +234,7 @@ export default function AddPropertyScreen() {
       <View style={styles.counterRow}>
         <TouchableOpacity
           style={styles.counterBtn}
-          onPress={() =>
-            onChange(String(Math.max(0, Number(value) - 1)))
-          }
+          onPress={() => onChange(String(Math.max(0, Number(value) - 1)))}
         >
           <Ionicons name="remove" size={18} color={Colors.primary} />
         </TouchableOpacity>
@@ -397,7 +401,11 @@ export default function AddPropertyScreen() {
         <View style={[styles.section, styles.countersRow]}>
           <Counter label="غرف النوم" value={rooms} onChange={setRooms} />
           <View style={styles.countersDivider} />
-          <Counter label="دورات المياه" value={bathrooms} onChange={setBathrooms} />
+          <Counter
+            label="دورات المياه"
+            value={bathrooms}
+            onChange={setBathrooms}
+          />
         </View>
 
         {/* ── Location text ── */}
@@ -590,7 +598,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pageHeaderTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  pageHeaderSub: { color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 2 },
+  pageHeaderSub: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    marginTop: 2,
+  },
 
   // Sections
   section: {
