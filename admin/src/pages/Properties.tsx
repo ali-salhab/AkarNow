@@ -92,6 +92,118 @@ function resolveImg(src: string): string {
   return `${API_ORIGIN}${src.startsWith("/") ? "" : "/"}${src}`;
 }
 
+// ── Full-screen lightbox modal ───────────────────────────────────────────────
+function Lightbox({
+  images,
+  startIndex,
+  onClose,
+}: {
+  images: string[];
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(startIndex);
+
+  const prev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIdx((i) => (i - 1 + images.length) % images.length);
+  };
+  const next = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIdx((i) => (i + 1) % images.length);
+  };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85"
+      onClick={onClose}
+      dir="ltr"
+    >
+      {/* Modal card */}
+      <div
+        className="relative flex flex-col items-center"
+        style={{ maxWidth: "90vw", maxHeight: "90vh" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+        {/* Image */}
+        <div
+          className="relative overflow-hidden rounded-xl bg-black"
+          style={{ maxWidth: "88vw", maxHeight: "80vh" }}
+        >
+          <img
+            src={images[idx]}
+            alt={`${idx + 1}`}
+            className="block object-contain rounded-xl"
+            style={{ maxWidth: "88vw", maxHeight: "80vh" }}
+          />
+
+          {/* Counter badge */}
+          {images.length > 1 && (
+            <span className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+              {idx + 1} / {images.length}
+            </span>
+          )}
+
+          {/* Prev arrow */}
+          {images.length > 1 && (
+            <button
+              onClick={prev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
+
+          {/* Next arrow */}
+          {images.length > 1 && (
+            <button
+              onClick={next}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          )}
+        </div>
+
+        {/* Dot indicators */}
+        {images.length > 1 && (
+          <div className="flex gap-1.5 mt-3">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  i === idx ? "bg-white" : "bg-white/35 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // ── Inline image slider used in the property table rows ──────────────────────
 function ImageSlider({
   images,
@@ -109,6 +221,7 @@ function ImageSlider({
 
   const [idx, setIdx] = useState(0);
   const [hovered, setHovered] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   if (all.length === 0)
@@ -163,7 +276,7 @@ function ImageSlider({
   };
 
   // Slider strip shared renderer
-  const strip = (w: number, h: number) => (
+  const strip = () => (
     <div
       className="flex h-full transition-transform duration-300 ease-in-out"
       style={{
@@ -185,15 +298,19 @@ function ImageSlider({
 
   return (
     <>
-      {/* Small thumbnail in table — nav arrows here since overlay is pointer-events-none */}
+      {/* Small thumbnail in table */}
       <div
         ref={containerRef}
         className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 cursor-pointer group"
         onMouseEnter={handleEnter}
         onMouseLeave={() => setHovered(false)}
+        onClick={() => {
+          setHovered(false);
+          setLightboxOpen(true);
+        }}
         dir="ltr"
       >
-        {strip(96, 64)}
+        {strip()}
         {all.length > 1 && (
           <>
             <button
@@ -212,7 +329,7 @@ function ImageSlider({
         )}
       </div>
 
-      {/* Fixed-position enlarged overlay — rendered in portal to escape any stacking context */}
+      {/* Hover enlarged overlay — pointer-events-none so it doesn't block other rows */}
       {hovered &&
         createPortal(
           <div
@@ -222,15 +339,14 @@ function ImageSlider({
               left: overlayPos.left,
               width: overlayPos.width,
               height: overlayPos.height,
-              zIndex: 99999,
+              zIndex: 99998,
               borderRadius: 12,
               overflow: "hidden",
               boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
             }}
             dir="ltr"
           >
-            {strip(overlayPos.width, overlayPos.height)}
-            {/* Dot indicators */}
+            {strip()}
             {all.length > 1 && (
               <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
                 {all.map((_, i) => (
@@ -243,7 +359,6 @@ function ImageSlider({
                 ))}
               </div>
             )}
-            {/* Image counter badge */}
             {all.length > 1 && (
               <span className="absolute top-2 right-2 bg-black/60 text-white text-[11px] px-1.5 py-0.5 rounded-md">
                 {idx + 1}/{all.length}
@@ -252,6 +367,15 @@ function ImageSlider({
           </div>,
           document.body,
         )}
+
+      {/* Full-screen lightbox */}
+      {lightboxOpen && (
+        <Lightbox
+          images={all}
+          startIndex={idx}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </>
   );
 }
@@ -1148,20 +1272,14 @@ export default function Properties() {
                   />
                   {form.latitude && form.longitude && (
                     <Marker
-                      position={[
-                        Number(form.latitude),
-                        Number(form.longitude),
-                      ]}
+                      position={[Number(form.latitude), Number(form.longitude)]}
                       icon={leafletIcon}
                     />
                   )}
                 </MapContainer>
               </div>
               {form.latitude && form.longitude && (
-                <p
-                  className="mt-1 text-xs text-gray-500 font-mono"
-                  dir="ltr"
-                >
+                <p className="mt-1 text-xs text-gray-500 font-mono" dir="ltr">
                   {form.latitude}, {form.longitude}
                 </p>
               )}
