@@ -21,6 +21,7 @@ import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/authStore";
 import { Colors } from "../../constants/Colors";
 import { Shadow, Spacing, Radius } from "../../constants/theme";
@@ -251,15 +252,22 @@ export default function SignupScreen() {
       <View style={styles.blob1} />
       <View style={styles.blob2} />
 
+      {/* Fixed back button — does NOT scroll with content */}
+      <TouchableOpacity
+        style={[styles.backBtn, { top: insets.top + 12 }]}
+        onPress={() => router.back()}
+      >
+        <Ionicons name="arrow-back" size={22} color="rgba(255,255,255,0.8)" />
+      </TouchableOpacity>
+
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + 70 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back button ───────────────────────────────────────────── */}
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="rgba(255,255,255,0.8)" />
-        </TouchableOpacity>
 
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <MotiView
@@ -295,7 +303,7 @@ export default function SignupScreen() {
           <Text style={styles.label}>الاسم الكامل</Text>
           <View style={styles.nameRow}>
             <TextInput
-              style={[styles.nameInput, { marginLeft: 8 }]}
+              style={styles.nameInput}
               placeholder="الاسم الأول"
               placeholderTextColor={Colors.textMuted}
               value={firstName}
@@ -723,7 +731,6 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: Spacing.base,
-    paddingTop: 60,
     paddingBottom: 40,
   },
   blob1: {
@@ -745,13 +752,15 @@ const styles = StyleSheet.create({
     left: -60,
   },
   backBtn: {
+    position: "absolute",
+    left: 16,
+    zIndex: 10,
     width: 42,
     height: 42,
     borderRadius: 21,
     backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
   },
   // ── Logo ──────────────────────────────────────────────────────────────────
   logoContainer: { alignItems: "center", marginBottom: 28 },
@@ -789,7 +798,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   // ── Name row ──────────────────────────────────────────────────────────────
-  nameRow: { flexDirection: "row" },
+  nameRow: { flexDirection: "row", gap: 10 },
   nameInput: {
     flex: 1,
     backgroundColor: Colors.surfaceAlt,
@@ -801,6 +810,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: Colors.textPrimary,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   // ── Phone ─────────────────────────────────────────────────────────────────
   phoneRow: {
@@ -831,6 +842,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 14,
     letterSpacing: 1,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   dropdown: {
     backgroundColor: "#fff",

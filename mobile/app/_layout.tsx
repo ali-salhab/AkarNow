@@ -8,6 +8,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { I18nManager } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuthStore } from "../store/authStore";
 import AppSplash from "../components/AppSplash";
 import "../global.css";
@@ -34,15 +35,15 @@ export default function RootLayout() {
 
   if (isLoading || !minTimeElapsed) {
     return (
-      <>
+      <SafeAreaProvider>
         <StatusBar style="light" />
         <AppSplash />
-      </>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
@@ -56,6 +57,6 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-    </>
+    </SafeAreaProvider>
   );
 }
