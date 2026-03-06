@@ -10,10 +10,16 @@ const {
   getPropertiesAdmin,
   updatePropertyAdmin,
   deletePropertyAdmin,
+  createPropertyAdmin,
+  approveProperty,
+  rejectProperty,
   getCitiesAdmin,
   createCityAdmin,
   updateCityAdmin,
   deleteCityAdmin,
+  getVerifications,
+  approveVerification,
+  rejectVerification,
 } = require("../controllers/adminController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
@@ -34,8 +40,16 @@ router.delete("/users/:id", deleteUser);
 
 // ─── Properties ───────────────────────────────────────────────────────────────
 router.get("/properties", getPropertiesAdmin);
+router.post("/properties", createPropertyAdmin);
 router.patch("/properties/:id", updatePropertyAdmin);
+router.patch("/properties/:id/approve", approveProperty);
+router.patch("/properties/:id/reject", rejectProperty);
 router.delete("/properties/:id", deletePropertyAdmin);
+
+// ─── Verifications ────────────────────────────────────────────────────────────
+router.get("/verifications", getVerifications);
+router.patch("/verifications/:id/approve", approveVerification);
+router.patch("/verifications/:id/reject", rejectVerification);
 
 // ─── Cities ───────────────────────────────────────────────────────────────────
 router.get("/cities", getCitiesAdmin);

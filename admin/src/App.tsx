@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import Users from "./pages/Users";
 import Cities from "./pages/Cities";
+import Verifications from "./pages/Verifications";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="properties" element={<Properties />} />
           <Route path="users" element={<Users />} />
+          <Route path="verifications" element={<Verifications />} />
           <Route path="cities" element={<Cities />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

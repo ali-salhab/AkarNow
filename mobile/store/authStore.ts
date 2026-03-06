@@ -8,6 +8,14 @@ import * as SecureStore from "expo-secure-store";
 import { authAPI } from "../services/api";
 import { User } from "../types";
 
+interface ExtraRegisterFields {
+  residenceCity?: string;
+  hasOffice?: boolean;
+  officeName?: string;
+  officeLocation?: string;
+  officeCoordinates?: { lat: number; lng: number };
+}
+
 interface AuthStore {
   user: User | null;
   token: string | null;
@@ -24,6 +32,7 @@ interface AuthStore {
     lastName: string,
     email?: string,
     password?: string,
+    extraFields?: ExtraRegisterFields,
   ) => Promise<{ devCode?: string }>;
   sendOTP: (phone: string) => Promise<{ devCode?: string }>;
   verifyOTP: (
@@ -32,6 +41,7 @@ interface AuthStore {
     name?: string,
     email?: string,
     password?: string,
+    extraFields?: ExtraRegisterFields,
   ) => Promise<boolean>;
   logout: () => Promise<void>;
   devLogin: () => Promise<void>;
@@ -86,6 +96,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     lastName: string,
     email?: string,
     password?: string,
+    extraFields?: ExtraRegisterFields,
   ) => {
     const response = await authAPI.register(
       phone,
@@ -93,6 +104,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       lastName,
       email,
       password,
+      extraFields,
     );
     return { devCode: response.data?.devCode };
   },
@@ -122,6 +134,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     name?: string,
     email?: string,
     password?: string,
+    extraFields?: ExtraRegisterFields,
   ) => {
     try {
       const response = await authAPI.verifyOTP(
@@ -130,6 +143,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         name,
         email,
         password,
+        extraFields,
       );
       const { token, user } = response.data;
 

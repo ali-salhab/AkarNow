@@ -15,6 +15,12 @@ export interface User {
   role: "user" | "agent" | "admin";
   isVerified: boolean;
   isActive: boolean;
+  verificationStatus: "none" | "pending" | "verified" | "rejected";
+  verificationRejectionReason?: string;
+  hasOffice?: boolean;
+  officeName?: string;
+  officeLocation?: string;
+  residenceCity?: string;
   createdAt: string;
   lastLogin?: string;
   propertiesCount?: number;
@@ -36,6 +42,7 @@ export interface Property {
   _id: string;
   title: string;
   titleAr?: string;
+  description?: string;
   listingType: "rent" | "sale" | "buy";
   propertyType: string;
   price: number;
@@ -46,6 +53,8 @@ export interface Property {
   rooms?: number;
   bathrooms?: number;
   status: "available" | "rented" | "sold" | "inactive";
+  approvalStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
   isFeatured: boolean;
   isVerified: boolean;
   viewsCount: number;

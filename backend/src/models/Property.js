@@ -191,7 +191,17 @@ const propertySchema = new mongoose.Schema(
       enum: ["available", "rented", "sold", "reserved", "inactive"],
       default: "available",
     },
+    // Admin approval before property is publicly visible
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
 
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
     isFeatured: {
       type: Boolean,
       default: false,

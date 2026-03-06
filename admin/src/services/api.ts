@@ -69,11 +69,36 @@ export const propertiesAPI = {
   getAll: (params?: Record<string, string | number>) =>
     api.get<PaginatedResponse<Property>>("/admin/properties", { params }),
 
+  create: (data: Partial<Property> & Record<string, unknown>) =>
+    api.post<ApiResponse<Property>>("/admin/properties", data),
+
   update: (id: string, data: Partial<Property>) =>
     api.patch<ApiResponse<Property>>(`/admin/properties/${id}`, data),
 
+  approve: (id: string) =>
+    api.patch<ApiResponse<Property>>(`/admin/properties/${id}/approve`),
+
+  reject: (id: string, reason?: string) =>
+    api.patch<ApiResponse<Property>>(`/admin/properties/${id}/reject`, {
+      reason,
+    }),
+
   delete: (id: string) =>
     api.delete<ApiResponse<null>>(`/admin/properties/${id}`),
+};
+
+// ─── Verifications ────────────────────────────────────────────────────────────
+export const verificationsAPI = {
+  getAll: (params?: Record<string, string | number>) =>
+    api.get<PaginatedResponse<User>>("/admin/verifications", { params }),
+
+  approve: (id: string) =>
+    api.patch<ApiResponse<User>>(`/admin/verifications/${id}/approve`),
+
+  reject: (id: string, reason?: string) =>
+    api.patch<ApiResponse<User>>(`/admin/verifications/${id}/reject`, {
+      reason,
+    }),
 };
 
 // ─── Cities ───────────────────────────────────────────────────────────────────

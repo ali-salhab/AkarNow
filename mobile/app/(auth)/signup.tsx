@@ -39,6 +39,7 @@ const COUNTRY_CODES = [
 export default function SignupScreen() {
   // ─── Form State ────────────────────────────────────────────────────────────
   const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [phone, setPhone] = useState("");
@@ -47,6 +48,12 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // ─── New profile fields ────────────────────────────────────────────────────
+  const [residenceCity, setResidenceCity] = useState("");
+  const [hasOffice, setHasOffice] = useState(false);
+  const [officeName, setOfficeName] = useState("");
+  const [officeLocation, setOfficeLocation] = useState("");
 
   // ─── OTP Modal State ───────────────────────────────────────────────────────
   const [otpModalVisible, setOtpModalVisible] = useState(false);
@@ -96,6 +103,10 @@ export default function SignupScreen() {
       );
       return;
     }
+    if (hasOffice && !officeName.trim()) {
+      Alert.alert("بيانات ناقصة", "يرجى إدخال اسم المكتب العقاري");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -106,6 +117,12 @@ export default function SignupScreen() {
         lastName.trim(),
         email.trim() || undefined,
         password || undefined,
+        {
+          residenceCity: residenceCity.trim() || undefined,
+          hasOffice,
+          officeName: hasOffice ? officeName.trim() : undefined,
+          officeLocation: hasOffice ? officeLocation.trim() : undefined,
+        },
       );
 
       setDevCode(result.devCode);
@@ -161,13 +178,24 @@ export default function SignupScreen() {
     setIsVerifying(true);
     try {
       const fullPhone = `${selectedCountry.code}${phone}`;
-      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+      const nameParts = [
+        firstName.trim(),
+        middleName.trim(),
+        lastName.trim(),
+      ].filter(Boolean);
+      const fullName = nameParts.join(" ");
       const success = await verifyOTP(
         fullPhone,
         otpCode,
         fullName,
         email.trim() || undefined,
         password || undefined,
+        {
+          residenceCity: residenceCity.trim() || undefined,
+          hasOffice,
+          officeName: hasOffice ? officeName.trim() : undefined,
+          officeLocation: hasOffice ? officeLocation.trim() : undefined,
+        },
       );
       if (success) {
         setOtpModalVisible(false);
@@ -268,6 +296,23 @@ export default function SignupScreen() {
               placeholderTextColor={Colors.textMuted}
               value={lastName}
               onChangeText={setLastName}
+              returnKeyType="next"
+            />
+          </View>
+          {/* Middle name (optional) */}
+          <View style={[styles.fieldRow, { marginTop: 8 }]}>
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.fieldIcon}
+            />
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="اسم الأب / الجد (اختياري)"
+              placeholderTextColor={Colors.textMuted}
+              value={middleName}
+              onChangeText={setMiddleName}
               returnKeyType="next"
             />
           </View>
@@ -383,6 +428,109 @@ export default function SignupScreen() {
               />
             </TouchableOpacity>
           </View>
+
+          {/* Register Button */}
+          {/* ─── Additional Profile Fields ───────────────────────── */}
+
+          {/* Residence City */}
+          <Text style={[styles.label, { marginTop: 16 }]}>
+            مدينة الإقامة (اختياري)
+          </Text>
+          <View style={styles.fieldRow}>
+            <Ionicons
+              name="location-outline"
+              size={18}
+              color={Colors.textMuted}
+              style={styles.fieldIcon}
+            />
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="مثال: الرياض، دبي..."
+              placeholderTextColor={Colors.textMuted}
+              value={residenceCity}
+              onChangeText={setResidenceCity}
+              returnKeyType="next"
+            />
+          </View>
+
+          {/* Has Office Toggle */}
+          <Text style={[styles.label, { marginTop: 16 }]}>
+            هل تمتلك مكتباً عقارياً؟
+          </Text>
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              style={[styles.toggleBtn, hasOffice && styles.toggleBtnActive]}
+              onPress={() => setHasOffice(true)}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.toggleBtnText,
+                  hasOffice && styles.toggleBtnTextActive,
+                ]}
+              >
+                نعم
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleBtn, !hasOffice && styles.toggleBtnActive]}
+              onPress={() => setHasOffice(false)}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.toggleBtnText,
+                  !hasOffice && styles.toggleBtnTextActive,
+                ]}
+              >
+                لا
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Office details (conditional) */}
+          {hasOffice && (
+            <>
+              <Text style={[styles.label, { marginTop: 16 }]}>
+                اسم المكتب *
+              </Text>
+              <View style={styles.fieldRow}>
+                <Ionicons
+                  name="business-outline"
+                  size={18}
+                  color={Colors.textMuted}
+                  style={styles.fieldIcon}
+                />
+                <TextInput
+                  style={styles.fieldInput}
+                  placeholder="اسم المكتب العقاري"
+                  placeholderTextColor={Colors.textMuted}
+                  value={officeName}
+                  onChangeText={setOfficeName}
+                  returnKeyType="next"
+                />
+              </View>
+
+              <Text style={[styles.label, { marginTop: 16 }]}>موقع المكتب</Text>
+              <View style={styles.fieldRow}>
+                <Ionicons
+                  name="map-outline"
+                  size={18}
+                  color={Colors.textMuted}
+                  style={styles.fieldIcon}
+                />
+                <TextInput
+                  style={styles.fieldInput}
+                  placeholder="العنوان أو الحي..."
+                  placeholderTextColor={Colors.textMuted}
+                  value={officeLocation}
+                  onChangeText={setOfficeLocation}
+                  returnKeyType="done"
+                  onSubmitEditing={handleRegister}
+                />
+              </View>
+            </>
+          )}
 
           {/* Register Button */}
           <TouchableOpacity
@@ -870,4 +1018,31 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   resendTextActive: { color: "#0EC6E3", fontWeight: "600" },
+  // ── Office toggle ─────────────────────────────────────────────────────────
+  toggleRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  toggleBtnActive: {
+    backgroundColor: "rgba(26,133,230,0.25)",
+    borderColor: "#1A85E6",
+  },
+  toggleBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.5)",
+  },
+  toggleBtnTextActive: {
+    color: "#fff",
+  },
 });

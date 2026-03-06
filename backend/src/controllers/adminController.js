@@ -334,6 +334,7 @@ exports.getPropertiesAdmin = async (req, res) => {
     const search = req.query.search || "";
     const status = req.query.status || "";
     const listingType = req.query.listingType || "";
+    const approvalStatus = req.query.approvalStatus || "";
     const skip = (page - 1) * limit;
 
     const query = {};
@@ -345,6 +346,7 @@ exports.getPropertiesAdmin = async (req, res) => {
     }
     if (status) query.status = status;
     if (listingType) query.listingType = listingType;
+    if (approvalStatus) query.approvalStatus = approvalStatus;
 
     const [properties, total] = await Promise.all([
       Property.find(query)
@@ -522,6 +524,177 @@ exports.deleteCityAdmin = async (req, res) => {
     }
     await City.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "City deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─── Property Approval ────────────────────────────────────────────────────────
+
+/**
+ * @desc   Create a property (admin)
+ * @route  POST /api/admin/properties
+ */
+exports.createPropertyAdmin = async (req, res) => {
+  try {
+    const property = await Property.create({
+      ...req.body,
+      approvalStatus: "approved",
+    });
+    const populated = await property.populate([
+      { path: "city", select: "name nameAr" },
+      { path: "owner", select: "name phone" },
+    ]);
+    res.status(201).json({ success: true, data: populated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * @desc   Approve a pending property
+ * @route  PATCH /api/admin/properties/:id/approve
+ */
+exports.approveProperty = async (req, res) => {
+  try {
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      { $set: { approvalStatus: "approved", rejectionReason: null } },
+      { new: true },
+    )
+      .populate("city", "name nameAr")
+      .populate("owner", "name phone");
+
+    if (!property)
+      return res
+        .status(404)
+        .json({ success: false, message: "Property not found" });
+
+    res.json({ success: true, data: property });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * @desc   Reject a pending property
+ * @route  PATCH /api/admin/properties/:id/reject
+ */
+exports.rejectProperty = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          approvalStatus: "rejected",
+          rejectionReason: reason || null,
+        },
+      },
+      { new: true },
+    )
+      .populate("city", "name nameAr")
+      .populate("owner", "name phone");
+
+    if (!property)
+      return res
+        .status(404)
+        .json({ success: false, message: "Property not found" });
+
+    res.json({ success: true, data: property });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─── User Verifications ───────────────────────────────────────────────────────
+
+/**
+ * @desc   Get users who have requested agent verification
+ * @route  GET /api/admin/verifications
+ */
+exports.getVerifications = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const status = req.query.status || "pending";
+    const skip = (page - 1) * limit;
+
+    const query = { verificationStatus: status };
+
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select("-__v")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments(query),
+    ]);
+
+    res.json({
+      success: true,
+      data: users,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * @desc   Approve a user verification request
+ * @route  PATCH /api/admin/verifications/:id/approve
+ */
+exports.approveVerification = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          verificationStatus: "verified",
+          isVerified: true,
+          role: "agent",
+          verificationRejectionReason: null,
+        },
+      },
+      { new: true },
+    ).select("-__v");
+
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    res.json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * @desc   Reject a user verification request
+ * @route  PATCH /api/admin/verifications/:id/reject
+ */
+exports.rejectVerification = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          verificationStatus: "rejected",
+          verificationRejectionReason: reason || null,
+        },
+      },
+      { new: true },
+    ).select("-__v");
+
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    res.json({ success: true, data: user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

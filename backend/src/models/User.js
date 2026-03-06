@@ -86,6 +86,48 @@ const userSchema = new mongoose.Schema(
       select: false,
       default: null,
     },
+
+    // Verification request (agent verification)
+    verificationStatus: {
+      type: String,
+      enum: ["none", "pending", "verified", "rejected"],
+      default: "none",
+    },
+
+    verificationRejectionReason: {
+      type: String,
+      default: null,
+    },
+
+    // Real-estate office info (for agents)
+    hasOffice: {
+      type: Boolean,
+      default: false,
+    },
+
+    officeName: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    officeLocation: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    officeCoordinates: {
+      lat: { type: Number },
+      lng: { type: Number },
+    },
+
+    // Residence city (free text or city name)
+    residenceCity: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   {
     timestamps: true,

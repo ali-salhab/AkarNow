@@ -45,8 +45,11 @@ const sendOTPHandler = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `OTP sent to ${phone}`,
-      // Only expose in development for testing
-      ...(process.env.NODE_ENV === "development" && { devCode: code }),
+      // Expose code when OTP_BYPASS is on (dev/staging) OR in development
+      ...(process.env.OTP_BYPASS === "true" ||
+      process.env.NODE_ENV === "development"
+        ? { devCode: code }
+        : {}),
     });
   } catch (error) {
     console.error("sendOTP error:", error);
@@ -118,6 +121,15 @@ const verifyOTPHandler = async (req, res) => {
     const isNewUser = !user;
 
     if (!user) {
+      // Extract extra registration fields
+      const {
+        residenceCity,
+        hasOffice,
+        officeName,
+        officeLocation,
+        officeCoordinates,
+      } = req.body;
+
       user = await User.create({
         phone,
         name: name || "",
@@ -125,6 +137,14 @@ const verifyOTPHandler = async (req, res) => {
         password: password || undefined,
         isVerified: true,
         lastLogin: new Date(),
+        // New profile fields
+        residenceCity: residenceCity || undefined,
+        hasOffice: hasOffice || false,
+        officeName: officeName || undefined,
+        officeLocation: officeLocation || undefined,
+        officeCoordinates: officeCoordinates || undefined,
+        // If user has an office, auto-request verification
+        verificationStatus: hasOffice ? "pending" : "none",
       });
     } else {
       // Update existing user

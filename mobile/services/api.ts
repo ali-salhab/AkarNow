@@ -4,17 +4,13 @@
  */
 
 import axios from "axios";
-import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { PropertyFilters, ApiResponse, Property, City, User } from "../types";
 
 // On Android emulator 10.0.2.2 maps to host machine's localhost.
 // In production (EAS build) EXPO_PUBLIC_API_URL is injected via eas.json env.
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  (Platform.OS === "android"
-    ? "http://10.0.2.2:5000/api"
-    : "http://localhost:5000/api");
+  process.env.EXPO_PUBLIC_API_URL || "https://akarnow-backend.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -62,8 +58,22 @@ export const authAPI = {
     lastName: string,
     email?: string,
     password?: string,
+    extraFields?: {
+      residenceCity?: string;
+      hasOffice?: boolean;
+      officeName?: string;
+      officeLocation?: string;
+      officeCoordinates?: { lat: number; lng: number };
+    },
   ) =>
-    api.post("/auth/register", { phone, firstName, lastName, email, password }),
+    api.post("/auth/register", {
+      phone,
+      firstName,
+      lastName,
+      email,
+      password,
+      ...extraFields,
+    }),
 
   verifyOTP: (
     phone: string,
@@ -71,7 +81,22 @@ export const authAPI = {
     name?: string,
     email?: string,
     password?: string,
-  ) => api.post("/auth/verify-otp", { phone, code, name, email, password }),
+    extraFields?: {
+      residenceCity?: string;
+      hasOffice?: boolean;
+      officeName?: string;
+      officeLocation?: string;
+      officeCoordinates?: { lat: number; lng: number };
+    },
+  ) =>
+    api.post("/auth/verify-otp", {
+      phone,
+      code,
+      name,
+      email,
+      password,
+      ...extraFields,
+    }),
 
   getMe: () => api.get<ApiResponse<User>>("/auth/me"),
 
