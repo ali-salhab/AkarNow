@@ -15,6 +15,7 @@ import {
   ScrollView,
   Alert,
   Modal,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -258,9 +259,11 @@ export default function SignupScreen() {
           transition={{ type: "spring", delay: 100 }}
           style={styles.logoContainer}
         >
-          <View style={styles.logoBox}>
-            <Ionicons name="home" size={36} color="#fff" />
-          </View>
+          <Image
+            source={require("../../assets/images/adaptive-icon.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.brandName}>
             <Text style={styles.brandAqar}>Aqar</Text>
             <Text style={styles.brandNow}>Now</Text>
@@ -745,17 +748,10 @@ const styles = StyleSheet.create({
   },
   // ── Logo ──────────────────────────────────────────────────────────────────
   logoContainer: { alignItems: "center", marginBottom: 28 },
-  logoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.3)",
-    ...Shadow.md,
+  logoImage: {
+    width: 90,
+    height: 90,
+    marginBottom: 8,
   },
   brandName: { fontSize: 26, fontWeight: "800", letterSpacing: -0.5 },
   brandAqar: { color: "rgba(255,255,255,0.85)" },
