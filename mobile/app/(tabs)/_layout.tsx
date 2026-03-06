@@ -4,7 +4,7 @@
  */
 
 import { Tabs } from "expo-router";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/Colors";
 import { Shadow } from "../../constants/theme";
@@ -70,6 +70,22 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="add"
+        options={{
+          title: "نشر عقار",
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.addBtnWrap}>
+              <View style={[styles.addBtn, focused && styles.addBtnFocused]}>
+                <Ionicons name="add" size={28} color="#fff" />
+              </View>
+            </View>
+          ),
+          tabBarLabel: () => (
+            <Text style={styles.addBtnLabel}>نشر</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="favorites"
         options={{
           title: "المحفوظات",
@@ -118,5 +134,32 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     paddingTop: 4,
+  },
+  addBtnWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -18,
+  },
+  addBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  addBtnFocused: {
+    backgroundColor: "#1A3C6E",
+  },
+  addBtnLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: Colors.primary,
+    marginTop: 4,
   },
 });

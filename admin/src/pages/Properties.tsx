@@ -210,44 +210,45 @@ function ImageSlider({
       </div>
 
       {/* Fixed-position enlarged overlay — rendered in portal to escape any stacking context */}
-      {hovered && createPortal(
-        <div
-          className="fixed pointer-events-none"
-          style={{
-            top: overlayPos.top,
-            left: overlayPos.left,
-            width: overlayPos.width,
-            height: overlayPos.height,
-            zIndex: 99999,
-            borderRadius: 12,
-            overflow: "hidden",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
-          }}
-          dir="ltr"
-        >
-          {strip(overlayPos.width, overlayPos.height)}
-          {/* Dot indicators */}
-          {all.length > 1 && (
-            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
-              {all.map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-2 h-2 rounded-full ${
-                    i === idx ? "bg-white" : "bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-          {/* Image counter badge */}
-          {all.length > 1 && (
-            <span className="absolute top-2 right-2 bg-black/60 text-white text-[11px] px-1.5 py-0.5 rounded-md">
-              {idx + 1}/{all.length}
-            </span>
-          )}
-        </div>,
-        document.body
-      )}
+      {hovered &&
+        createPortal(
+          <div
+            className="fixed pointer-events-none"
+            style={{
+              top: overlayPos.top,
+              left: overlayPos.left,
+              width: overlayPos.width,
+              height: overlayPos.height,
+              zIndex: 99999,
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+            }}
+            dir="ltr"
+          >
+            {strip(overlayPos.width, overlayPos.height)}
+            {/* Dot indicators */}
+            {all.length > 1 && (
+              <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+                {all.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full ${
+                      i === idx ? "bg-white" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+            {/* Image counter badge */}
+            {all.length > 1 && (
+              <span className="absolute top-2 right-2 bg-black/60 text-white text-[11px] px-1.5 py-0.5 rounded-md">
+                {idx + 1}/{all.length}
+              </span>
+            )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
@@ -1398,7 +1399,10 @@ export default function Properties() {
 
               {/* Existing kept images — each with individual × */}
               {editKeptImages.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2" dir="ltr">
+                <div
+                  className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2"
+                  dir="ltr"
+                >
                   {editKeptImages.map((img, i) => (
                     <div key={img + i} className="relative flex-shrink-0">
                       <img
@@ -1409,7 +1413,9 @@ export default function Properties() {
                       <button
                         type="button"
                         onClick={() =>
-                          setEditKeptImages((prev) => prev.filter((_, j) => j !== i))
+                          setEditKeptImages((prev) =>
+                            prev.filter((_, j) => j !== i),
+                          )
                         }
                         className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none hover:bg-red-600"
                       >
@@ -1434,7 +1440,10 @@ export default function Properties() {
 
               {/* New files preview — blue border distinguishes them from existing */}
               {editImageFiles.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2" dir="ltr">
+                <div
+                  className="flex gap-2 overflow-x-auto pt-2 pb-1 mb-2"
+                  dir="ltr"
+                >
                   {editImageFiles.map((file, i) => {
                     const url = URL.createObjectURL(file);
                     return (
@@ -1499,7 +1508,9 @@ export default function Properties() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="text-xs text-gray-400">انقر لإضافة صور جديدة</span>
+                <span className="text-xs text-gray-400">
+                  انقر لإضافة صور جديدة
+                </span>
               </label>
             </div>
           </div>

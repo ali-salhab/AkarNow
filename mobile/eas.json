@@ -24,6 +24,16 @@
         "EXPO_PUBLIC_API_URL": "https://aqarnow-api.onrender.com/api"
       }
     },
+    "release-apk": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://aqarnow-api.onrender.com/api"
+      }
+    },
     "production": {
       "android": {
         "buildType": "app-bundle"

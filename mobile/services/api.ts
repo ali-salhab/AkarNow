@@ -116,7 +116,7 @@ export const propertiesAPI = {
   getSuggestions: (q: string) =>
     api.get("/properties/suggestions", { params: { q } }),
 
-  create: (data: Partial<Property>) =>
+  create: (data: Partial<Property> | Record<string, unknown>) =>
     api.post<ApiResponse<Property>>("/properties", data),
 
   update: (id: string, data: Partial<Property>) =>

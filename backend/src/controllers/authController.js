@@ -38,15 +38,20 @@ const sendOTPHandler = async (req, res) => {
     await OTP.create({ phone, code });
 
     // Send via Twilio (or bypass in dev)
-    if (process.env.OTP_BYPASS !== "true") {
+    const twilioConfigured = !!(
+      process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    );
+    if (process.env.OTP_BYPASS !== "true" && twilioConfigured) {
       await sendOTP(phone, code);
     }
 
     res.status(200).json({
       success: true,
       message: `OTP sent to ${phone}`,
-      // Expose code when OTP_BYPASS is on (dev/staging) OR in development
-      ...(process.env.OTP_BYPASS === "true" ||
+      // Always return devCode when no real SMS is configured (Twilio missing),
+      // so the client can display it in the app for testing.
+      ...(!twilioConfigured ||
+      process.env.OTP_BYPASS === "true" ||
       process.env.NODE_ENV === "development"
         ? { devCode: code }
         : {}),
