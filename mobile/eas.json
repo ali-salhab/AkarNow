@@ -21,7 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://aqarnow-api.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://akarnow-backend.onrender.com/api"
       }
     },
     "release-apk": {
@@ -31,7 +31,7 @@
         "gradleCommand": ":app:assembleRelease"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://aqarnow-api.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://akarnow-backend.onrender.com/api"
       }
     },
     "production": {
