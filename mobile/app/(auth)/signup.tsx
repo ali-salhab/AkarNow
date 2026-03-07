@@ -155,9 +155,7 @@ export default function SignupScreen() {
       console.error("[register] status:", error?.response?.status);
       console.error("[register] message:", error?.message);
       const msg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "فشل إنشاء الحساب";
+        error?.response?.data?.message || error?.message || "فشل إنشاء الحساب";
       Alert.alert("خطأ", msg);
     } finally {
       setIsLoading(false);
@@ -237,7 +235,12 @@ export default function SignupScreen() {
       console.error("[verifyOTP] error:", err);
       console.error("[verifyOTP] response:", err?.response?.data);
       console.error("[verifyOTP] status:", err?.response?.status);
-      Alert.alert("خطأ", err?.response?.data?.message || err?.message || "فشل التحقق. يرجى المحاولة مرة أخرى.");
+      Alert.alert(
+        "خطأ",
+        err?.response?.data?.message ||
+          err?.message ||
+          "فشل التحقق. يرجى المحاولة مرة أخرى.",
+      );
     } finally {
       setIsVerifying(false);
     }

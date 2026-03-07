@@ -77,18 +77,17 @@ export default function PropertyDetailsScreen() {
     ),
   }));
 
-  const imageScale = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: interpolate(
-          scrollY.value,
-          [-100, 0],
-          [1.3, 1],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-  }));
+  const imageTransform = useAnimatedStyle(() => {
+    const sv = scrollY.value;
+    if (sv < 0) {
+      // Overscroll (pull down) — image grows downward, top stays anchored
+      const scale = interpolate(sv, [-150, 0], [1.4, 1], Extrapolation.CLAMP);
+      const translateY = (scale - 1) * HEADER_HEIGHT * 0.5;
+      return { transform: [{ translateY }, { scale }] };
+    }
+    // Normal scroll — parallax (image drifts up slower than content)
+    return { transform: [{ translateY: -sv * 0.4 }, { scale: 1 }] };
+  });
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -146,134 +145,78 @@ export default function PropertyDetailsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated sticky header (shows on scroll) */}
-      <Animated.View
-        style={[styles.stickyHeader, { paddingTop: insets.top }, headerStyle]}
-      >
-        <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.headerBackBtn}
-        >
-          <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.stickyTitle} numberOfLines={1}>
-          {property?.title}
-        </Text>
-        <TouchableOpacity onPress={handleShare} style={styles.headerShareBtn}>
-          <Ionicons
-            name="share-social-outline"
-            size={22}
-            color={Colors.textPrimary}
-          />
-        </TouchableOpacity>
-      </Animated.View>
+      {/* ─── Image Section (fixed behind scrollable content) ─── */}
+      <Animated.View style={[styles.imageContainer, imageTransform]}>
+        <FlatList
+          ref={imageListRef}
+          data={images}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, i) => String(i)}
+          onViewableItemsChanged={onViewableItemsChanged.current}
+          viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+          renderItem={({ item }) => (
+            <Image
+              source={{ uri: item }}
+              style={styles.heroImage}
+              contentFit="cover"
+              transition={300}
+            />
+          )}
+        />
 
+        {/* Image gradient overlay */}
+        <LinearGradient
+          colors={["rgba(0,0,0,0.5)", "transparent", "rgba(0,0,0,0.6)"]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+
+        {/* Pagination dots */}
+        {images.length > 1 && (
+          <View style={styles.imageDots}>
+            {images.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.imageDot,
+                  i === activeImageIndex && styles.imageDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Image counter */}
+        <View style={[styles.imageCounter, { top: insets.top + 12 }]}>
+          <Ionicons name="images-outline" size={12} color="#fff" />
+          <Text style={styles.imageCounterText}>
+            {activeImageIndex + 1}/{images.length}
+          </Text>
+        </View>
+
+        {/* Price overlay on image */}
+        <View style={styles.priceOverlay}>
+          <Text style={styles.priceText}>
+            {property ? formatPrice(property.price, property.currency) : "---"}
+          </Text>
+          {property?.listingType === "rent" && (
+            <Text style={styles.priceSubtext}>
+              /{property.rentPeriod === "yearly" ? "سنة" : "شهر"}
+            </Text>
+          )}
+        </View>
+      </Animated.View>
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{
+          paddingTop: HEADER_HEIGHT,
+          paddingBottom: 120,
+        }}
       >
-        {/* ─── Image Slider ──────────────────────────────────── */}
-        <Animated.View style={[styles.imageContainer, imageScale]}>
-          <FlatList
-            ref={imageListRef}
-            data={images}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(_, i) => String(i)}
-            onViewableItemsChanged={onViewableItemsChanged.current}
-            viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item }}
-                style={styles.heroImage}
-                contentFit="cover"
-                transition={300}
-              />
-            )}
-          />
-
-          {/* Image gradient overlay */}
-          <LinearGradient
-            colors={["rgba(0,0,0,0.5)", "transparent", "rgba(0,0,0,0.6)"]}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-
-          {/* Pagination dots */}
-          {images.length > 1 && (
-            <View style={styles.imageDots}>
-              {images.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.imageDot,
-                    i === activeImageIndex && styles.imageDotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* Image counter */}
-          <View style={styles.imageCounter}>
-            <Ionicons name="images-outline" size={12} color="#fff" />
-            <Text style={styles.imageCounterText}>
-              {activeImageIndex + 1}/{images.length}
-            </Text>
-          </View>
-
-          {/* Top actions (transparent header) */}
-          <View
-            style={[styles.transparentHeader, { paddingTop: insets.top + 8 }]}
-          >
-            <TouchableOpacity
-              style={styles.headerCircleBtn}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={20} color="#fff" />
-            </TouchableOpacity>
-            <View style={styles.headerRightBtns}>
-              <TouchableOpacity
-                style={styles.headerCircleBtn}
-                onPress={handleShare}
-              >
-                <Ionicons name="share-social-outline" size={20} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.headerCircleBtn,
-                  favorited && styles.headerCircleBtnFav,
-                ]}
-                onPress={() => property && toggleFavorite(property._id)}
-              >
-                <Ionicons
-                  name={favorited ? "heart" : "heart-outline"}
-                  size={20}
-                  color={favorited ? "#FF4757" : "#fff"}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Price overlay on image */}
-          <View style={styles.priceOverlay}>
-            <Text style={styles.priceText}>
-              {property
-                ? formatPrice(property.price, property.currency)
-                : "---"}
-            </Text>
-            {property?.listingType === "rent" && (
-              <Text style={styles.priceSubtext}>
-                /{property.rentPeriod === "yearly" ? "سنة" : "شهر"}
-              </Text>
-            )}
-          </View>
-        </Animated.View>
-
         {/* ─── Main Content ─────────────────────────────────── */}
         <View style={styles.content}>
           {/* Title & Badge */}
@@ -439,7 +382,58 @@ export default function PropertyDetailsScreen() {
           )}
         </View>
       </Animated.ScrollView>
-
+      {/* ─── Overlay Buttons (fixed, safe area protected) ──── */}
+      <View style={[styles.transparentHeader, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          style={styles.headerCircleBtn}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={20} color="#fff" />
+        </TouchableOpacity>
+        <View style={styles.headerRightBtns}>
+          <TouchableOpacity
+            style={styles.headerCircleBtn}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-social-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.headerCircleBtn,
+              favorited && styles.headerCircleBtnFav,
+            ]}
+            onPress={() => property && toggleFavorite(property._id)}
+          >
+            <Ionicons
+              name={favorited ? "heart" : "heart-outline"}
+              size={20}
+              color={favorited ? "#FF4757" : "#fff"}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      {/* Animated sticky header (shows on scroll) */}
+      <Animated.View
+        style={[styles.stickyHeader, { paddingTop: insets.top }, headerStyle]}
+      >
+        <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.headerBackBtn}
+        >
+          <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.stickyTitle} numberOfLines={1}>
+          {property?.title}
+        </Text>
+        <TouchableOpacity onPress={handleShare} style={styles.headerShareBtn}>
+          <Ionicons
+            name="share-social-outline"
+            size={22}
+            color={Colors.textPrimary}
+          />
+        </TouchableOpacity>
+      </Animated.View>
       {/* ─── Bottom Action Bar ──────────────────────────────── */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <TouchableOpacity
@@ -525,6 +519,10 @@ const styles = StyleSheet.create({
   },
   // Image
   imageContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     height: HEADER_HEIGHT,
     overflow: "hidden",
   },
@@ -587,8 +585,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     gap: 4,
-    // will be positioned after safe area in real code
-    marginTop: 60,
   },
   imageCounterText: { color: "#fff", fontSize: 11, fontWeight: "600" },
   priceOverlay: {

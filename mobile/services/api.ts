@@ -10,7 +10,7 @@ import { PropertyFilters, ApiResponse, Property, City, User } from "../types";
 // On Android emulator 10.0.2.2 maps to host machine's localhost.
 // In production (EAS build) EXPO_PUBLIC_API_URL is injected via eas.json env.
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "https://aqarnow-api.onrender.com/api";
+  process.env.EXPO_PUBLIC_API_URL || "https://akarnow-backend.onrender.com/api";
 
 console.log("[api] BASE_URL =", BASE_URL);
 
@@ -29,7 +29,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(`[api] → ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.data ?? "");
+    console.log(
+      `[api] → ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
+      config.data ?? "",
+    );
     return config;
   },
   (error) => Promise.reject(error),
@@ -38,11 +41,17 @@ api.interceptors.request.use(
 // ─── Response Interceptor: Handle 401 ─────────────────────────────────────────
 api.interceptors.response.use(
   (response) => {
-    console.log(`[api] ← ${response.status} ${response.config.url}`, response.data);
+    console.log(
+      `[api] ← ${response.status} ${response.config.url}`,
+      response.data,
+    );
     return response;
   },
   async (error) => {
-    console.error(`[api] ✕ ${error?.response?.status ?? "network"} ${error?.config?.url}`, error?.response?.data ?? error?.message);
+    console.error(
+      `[api] ✕ ${error?.response?.status ?? "network"} ${error?.config?.url}`,
+      error?.response?.data ?? error?.message,
+    );
     if (error.response?.status === 401) {
       await SecureStore.deleteItemAsync("auth_token");
       await SecureStore.deleteItemAsync("auth_user");
